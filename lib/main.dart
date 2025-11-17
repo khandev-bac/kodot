@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:kodot/contants/Colors.dart';
 import 'package:kodot/firebase_options.dart';
 import 'package:kodot/screens/AuthScreen.dart';
+import 'package:kodot/screens/SkillScreen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,7 +22,7 @@ class MainApp extends StatelessWidget {
         primaryColor: AppColors.customWhite,
       ),
       debugShowCheckedModeBanner: false,
-      home: Scaffold(body: Authscreen()),
+      home: Scaffold(body: Skillscreen()),
     );
   }
 }
