@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "229988878612",
+    "project_id": "kodot-4099e",
+    "storage_bucket": "kodot-4099e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:229988878612:android:22d994cd468384c6f19a01",
+        "android_client_info": {
+          "package_name": "com.example.kodot"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "229988878612-gpv9ld744fla9860eg6k45ikh0h7m0bp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBL_p5Atb5xgf3HUD6dD55mFW-a0yok31A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "229988878612-gpv9ld744fla9860eg6k45ikh0h7m0bp.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
