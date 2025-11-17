@@ -65,6 +65,5 @@ class _IdeselectionscreenState extends State<Ideselectionscreen> {
         ),
       ),
     );
-    ;
   }
 }

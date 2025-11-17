@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:kodot/contants/AppUrls.dart';
 import 'package:http/http.dart' as http;
 
@@ -18,7 +19,9 @@ class Authservice {
       );
       return credential;
     } catch (e) {
-      print("Google Sign-In Error: $e");
+      if (kDebugMode) {
+        print("Google Sign-In Error: $e");
+      }
       rethrow;
     }
   }
@@ -27,10 +30,14 @@ class Authservice {
     try {
       final userCred = await googleLogin();
       final idToken = await userCred?.user?.getIdToken();
-      print("ID TOKEN -> $idToken");
+      if (kDebugMode) {
+        print("ID TOKEN -> $idToken");
+      }
       firebaseAuth(idToken!);
     } catch (e) {
-      print("Google Login Flow Error: $e");
+      if (kDebugMode) {
+        print("Google Login Flow Error: $e");
+      }
     }
   }
 
@@ -43,20 +50,62 @@ class Authservice {
         body: jsonEncode({"idToken": idToken}),
       );
       if (res.statusCode == 200) {
-        print("Status: ${res.statusCode}");
-        print("Body: ${res.body}");
+        if (kDebugMode) {
+          print("Status: ${res.statusCode}");
+        }
+        if (kDebugMode) {
+          print("Body: ${res.body}");
+        }
       }
     } catch (e) {
-      print("Error $e");
+      if (kDebugMode) {
+        print("Error $e");
+      }
     }
   }
 
   void signOut() async {
     try {
       await _auth.signOut();
-      print("Signed out successfully.");
+      if (kDebugMode) {
+        print("Signed out successfully.");
+      }
     } catch (e) {
-      print("Sign-out error: $e");
+      if (kDebugMode) {
+        print("Sign-out error: $e");
+      }
     }
+  }
+
+  Future<UserCredential?> signupUser(String email, String password) async {
+    try {
+      final credential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
+      final idToken = await credential.user?.getIdToken();
+      firebaseAuth(idToken!);
+      return credential;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Sign up error: $e");
+      }
+      rethrow;
+    }
+  }
+
+  Future<UserCredential?> loginUser(String email, String password) async {
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      // final idToken = await credential.user?.getIdToken();
+      // firebaseAuth(idToken!);
+    } catch (e) {
+      if (kDebugMode) {
+        print("Sign up error: $e");
+      }
+      rethrow;
+    }
+    return null;
   }
 }

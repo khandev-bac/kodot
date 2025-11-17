@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:kodot/contants/AppImages.dart';
 import 'package:kodot/contants/Colors.dart';
+import 'package:kodot/screens/SignUpScreen.dart';
 import 'package:kodot/service/AuthService.dart';
 import 'package:kodot/widget/CustomButton.dart';
 
@@ -36,7 +38,19 @@ class Authscreen extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 30),
-              Custombutton(text: "Continue with Email"),
+              Custombutton(
+                text: "Continue with Email",
+                onTap: () {
+                  HapticFeedback.heavyImpact();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          Signupscreen(), // Replace with your target page
+                    ),
+                  );
+                },
+              ),
               const SizedBox(height: 30),
             ],
           ),

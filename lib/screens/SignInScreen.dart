@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:kodot/contants/Colors.dart';
+import 'package:kodot/screens/HomeScreen.dart';
+import 'package:kodot/screens/SignUpScreen.dart';
+import 'package:kodot/service/AuthService.dart';
 import 'package:kodot/widget/CustomButton.dart';
 import 'package:kodot/widget/Textfeild.dart';
 
@@ -15,6 +18,7 @@ class _SigninscreenState extends State<Signinscreen> {
   final TextEditingController passwordController = TextEditingController();
   @override
   Widget build(BuildContext context) {
+    final Authservice authservice = Authservice();
     return Scaffold(
       appBar: AppBar(backgroundColor: AppColors.customBlack),
       body: Padding(
@@ -46,7 +50,22 @@ class _SigninscreenState extends State<Signinscreen> {
               isPassowrd: true,
             ),
             const SizedBox(height: 30),
-            Custombutton(text: "Sign In"),
+            Custombutton(
+              text: "Sign In",
+              onTap: () async {
+                await authservice.loginUser(
+                  emailController.text.trim(),
+                  passwordController.text.trim(),
+                );
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        Homescreen(), // Replace with your target page
+                  ),
+                );
+              },
+            ),
             // const SizedBox(height: 5),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -58,6 +77,13 @@ class _SigninscreenState extends State<Signinscreen> {
                 TextButton(
                   onPressed: () {
                     // Navigate to login
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            Signupscreen(), // Replace with your target page
+                      ),
+                    );
                   },
                   child: Text(
                     "Sign Up",

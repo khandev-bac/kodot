@@ -1,4 +1,5 @@
 // ignore: file_names
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:kodot/contants/Colors.dart';
 import 'package:kodot/widget/CustomButton.dart';
@@ -51,7 +52,9 @@ class _OsselectionscreenState extends State<Osselectionscreen> {
                       setState(() {
                         selectedIndex = index;
                       });
-                      print(items[index]);
+                      if (kDebugMode) {
+                        print(items[index]);
+                      }
                     },
                   );
                 }),
@@ -63,6 +66,5 @@ class _OsselectionscreenState extends State<Osselectionscreen> {
         ),
       ),
     );
-    ;
   }
 }

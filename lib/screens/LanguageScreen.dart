@@ -73,6 +73,5 @@ class _LanguagescreenState extends State<Languagescreen> {
         ),
       ),
     );
-    ;
   }
 }
