@@ -40,7 +40,7 @@ class AnimatedCapsuleButton extends StatelessWidget {
               fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
-            child: Text(text),
+            child: Text(text, style: TextStyle(fontFamily: "Jost")),
           ),
         ),
       ),
