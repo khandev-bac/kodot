@@ -1,11 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:kodot/contants/Colors.dart';
 import 'package:kodot/firebase_options.dart';
-import 'package:kodot/screens/GoalSelectionScreen.dart';
-import 'package:kodot/screens/OsSelectionScreen.dart';
-import 'package:kodot/screens/SignInScreen.dart';
-import 'package:kodot/screens/SignUpScreen.dart';
+import 'package:kodot/screens/AuthScreen.dart';
+import 'package:kodot/screens/HomeScreen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,7 +23,18 @@ class MainApp extends StatelessWidget {
         primaryColor: AppColors.customWhite,
       ),
       debugShowCheckedModeBanner: false,
-      home: Scaffold(body: Signinscreen()),
+      home: StreamBuilder(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const CircularProgressIndicator();
+          }
+          if (snapshot.hasData) {
+            return Homescreen();
+          }
+          return Authscreen();
+        },
+      ),
     );
   }
 }
