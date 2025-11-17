@@ -4,6 +4,8 @@ import 'package:kodot/contants/Colors.dart';
 import 'package:kodot/firebase_options.dart';
 import 'package:kodot/screens/GoalSelectionScreen.dart';
 import 'package:kodot/screens/OsSelectionScreen.dart';
+import 'package:kodot/screens/SignInScreen.dart';
+import 'package:kodot/screens/SignUpScreen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,7 +24,7 @@ class MainApp extends StatelessWidget {
         primaryColor: AppColors.customWhite,
       ),
       debugShowCheckedModeBanner: false,
-      home: Scaffold(body: Goalselectionscreen()),
+      home: Scaffold(body: Signinscreen()),
     );
   }
 }
