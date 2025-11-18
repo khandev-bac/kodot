@@ -7,8 +7,6 @@ import 'package:kodot/screens/features/MainScreen.dart';
 import 'package:kodot/screens/features/PostScreen.dart';
 import 'package:kodot/screens/features/ProfileScreen.dart';
 import 'package:kodot/screens/features/SearchScreen.dart';
-import 'package:kodot/service/AuthService.dart';
-import 'package:kodot/widget/CustomButton.dart';
 
 class Homescreen extends StatefulWidget {
   @override
