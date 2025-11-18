@@ -34,6 +34,7 @@ class Authscreen extends StatelessWidget {
               Custombutton(
                 text: "Continue with Google",
                 onTap: () async {
+                  HapticFeedback.heavyImpact();
                   await authservice.googleLoginFlow();
                 },
               ),
@@ -42,11 +43,18 @@ class Authscreen extends StatelessWidget {
                 text: "Continue with Email",
                 onTap: () {
                   HapticFeedback.heavyImpact();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          Signupscreen(), // Replace with your target page
+                  Navigator.of(context).push(
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          Signupscreen(),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                            return FadeTransition(
+                              opacity: animation,
+                              child: child,
+                            );
+                          },
+                      transitionDuration: const Duration(milliseconds: 500),
                     ),
                   );
                 },

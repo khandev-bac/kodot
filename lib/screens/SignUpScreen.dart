@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:kodot/contants/Colors.dart';
 import 'package:kodot/screens/HomeScreen.dart';
@@ -16,6 +17,8 @@ class Signupscreen extends StatefulWidget {
 class _SignupscreenState extends State<Signupscreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  String? errorMessage;
+  bool isLoading = false;
   @override
   Widget build(BuildContext context) {
     final Authservice authservice = Authservice();
@@ -42,30 +45,73 @@ class _SignupscreenState extends State<Signupscreen> {
             AnimatedCapsuleTextField(
               hint: "Email",
               controller: emailController,
+              validator: (text) {
+                if (passwordController.text.trim() == "") {
+                  return "Empty feild";
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 20),
             AnimatedCapsuleTextField(
               hint: "Password",
               controller: passwordController,
               isPassowrd: true,
-            ),
-            const SizedBox(height: 30),
-            Custombutton(
-              text: "Sign Up",
-              onTap: () async {
-                await authservice.signupUser(
-                  emailController.text.trim(),
-                  passwordController.text.trim(),
-                );
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        Homescreen(), // Replace with your target page
-                  ),
-                );
+              validator: (text) {
+                if (passwordController.text.trim() == "") {
+                  return "Empty feild";
+                }
+                return null;
               },
             ),
+            const SizedBox(height: 30),
+            isLoading
+                ? const CircularProgressIndicator(color: Colors.white)
+                : Custombutton(
+                    text: "Sign Up",
+                    onTap: () async {
+                      setState(() {
+                        isLoading = true; // show loader
+                        errorMessage = null; // reset error
+                      });
+                      try {
+                        await authservice.signupUser(
+                          emailController.text.trim(),
+                          passwordController.text.trim(),
+                        );
+                        Navigator.of(context).pushReplacement(
+                          PageRouteBuilder(
+                            pageBuilder:
+                                (context, animation, secondaryAnimation) =>
+                                    Homescreen(),
+                            transitionsBuilder:
+                                (
+                                  context,
+                                  animation,
+                                  secondaryAnimation,
+                                  child,
+                                ) {
+                                  return FadeTransition(
+                                    opacity: animation,
+                                    child: child,
+                                  );
+                                },
+                            transitionDuration: const Duration(
+                              milliseconds: 500,
+                            ),
+                          ),
+                        );
+                      } catch (e) {
+                        setState(() {
+                          errorMessage = e.toString();
+                          isLoading = false;
+                        });
+                        if (kDebugMode) {
+                          print(e);
+                        }
+                      }
+                    },
+                  ),
             // const SizedBox(height: 5),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -77,11 +123,18 @@ class _SignupscreenState extends State<Signupscreen> {
                 TextButton(
                   onPressed: () {
                     // Navigate to login
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            Signinscreen(), // Replace with your target page
+                    Navigator.of(context).push(
+                      PageRouteBuilder(
+                        pageBuilder: (context, animation, secondaryAnimation) =>
+                            Signinscreen(),
+                        transitionsBuilder:
+                            (context, animation, secondaryAnimation, child) {
+                              return FadeTransition(
+                                opacity: animation,
+                                child: child,
+                              );
+                            },
+                        transitionDuration: const Duration(milliseconds: 500),
                       ),
                     );
                   },
@@ -95,6 +148,14 @@ class _SignupscreenState extends State<Signupscreen> {
                 ),
               ],
             ),
+            const SizedBox(height: 30),
+            if (errorMessage != null) ...[
+              Text(
+                errorMessage!,
+                style: TextStyle(color: AppColors.customRed),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ],
         ),
       ),

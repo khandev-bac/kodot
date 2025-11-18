@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:kodot/contants/Colors.dart';
 import 'package:kodot/screens/HomeScreen.dart';
@@ -16,6 +17,8 @@ class Signinscreen extends StatefulWidget {
 class _SigninscreenState extends State<Signinscreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  String? errorMessage;
+  bool isLoading = false;
   @override
   Widget build(BuildContext context) {
     final Authservice authservice = Authservice();
@@ -50,22 +53,53 @@ class _SigninscreenState extends State<Signinscreen> {
               isPassowrd: true,
             ),
             const SizedBox(height: 30),
-            Custombutton(
-              text: "Sign In",
-              onTap: () async {
-                await authservice.loginUser(
-                  emailController.text.trim(),
-                  passwordController.text.trim(),
-                );
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        Homescreen(), // Replace with your target page
+            isLoading
+                ? const CircularProgressIndicator(color: Colors.white)
+                : Custombutton(
+                    text: "Sign Up",
+                    onTap: () async {
+                      setState(() {
+                        isLoading = true; // show loader
+                        errorMessage = null; // reset error
+                      });
+                      try {
+                        await authservice.loginUser(
+                          emailController.text.trim(),
+                          passwordController.text.trim(),
+                        );
+                        Navigator.of(context).pushReplacement(
+                          PageRouteBuilder(
+                            pageBuilder:
+                                (context, animation, secondaryAnimation) =>
+                                    Homescreen(),
+                            transitionsBuilder:
+                                (
+                                  context,
+                                  animation,
+                                  secondaryAnimation,
+                                  child,
+                                ) {
+                                  return FadeTransition(
+                                    opacity: animation,
+                                    child: child,
+                                  );
+                                },
+                            transitionDuration: const Duration(
+                              milliseconds: 500,
+                            ),
+                          ),
+                        );
+                      } catch (e) {
+                        setState(() {
+                          errorMessage = e.toString();
+                          isLoading = false;
+                        });
+                        if (kDebugMode) {
+                          print(e);
+                        }
+                      }
+                    },
                   ),
-                );
-              },
-            ),
             // const SizedBox(height: 5),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -77,11 +111,18 @@ class _SigninscreenState extends State<Signinscreen> {
                 TextButton(
                   onPressed: () {
                     // Navigate to login
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            Signupscreen(), // Replace with your target page
+                    Navigator.of(context).push(
+                      PageRouteBuilder(
+                        pageBuilder: (context, animation, secondaryAnimation) =>
+                            Signupscreen(),
+                        transitionsBuilder:
+                            (context, animation, secondaryAnimation, child) {
+                              return FadeTransition(
+                                opacity: animation,
+                                child: child,
+                              );
+                            },
+                        transitionDuration: const Duration(milliseconds: 500),
                       ),
                     );
                   },
@@ -95,6 +136,14 @@ class _SigninscreenState extends State<Signinscreen> {
                 ),
               ],
             ),
+            const SizedBox(height: 30),
+            if (errorMessage != null) ...[
+              Text(
+                errorMessage!,
+                style: TextStyle(color: AppColors.customRed),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ],
         ),
       ),
