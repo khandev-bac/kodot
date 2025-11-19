@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:kodot/contants/Colors.dart';
 import 'package:kodot/screens/features/CodePostScreen.dart';
+import 'package:kodot/screens/features/UploadPostImageScreen.dart';
 import 'package:kodot/widget/CustomCircle.dart';
 
 class Postscreen extends StatefulWidget {
@@ -107,7 +108,28 @@ class _PostscreenState extends State<Postscreen> {
                   "Share a Snapshot of Your Project",
                   style: TextStyle(color: Colors.white),
                 ),
-                onTap: () => Navigator.pop(context),
+                onTap: () {
+                  Navigator.of(context).push(
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          UploadPostImageScreen(),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                            const begin = Offset(0, 1);
+                            const end = Offset.zero;
+                            final curve = Curves.easeOutCubic;
+                            final tween = Tween(
+                              begin: begin,
+                              end: end,
+                            ).chain(CurveTween(curve: curve));
+                            return SlideTransition(
+                              position: animation.drive(tween),
+                              child: child,
+                            );
+                          },
+                    ),
+                  );
+                },
               ),
               SizedBox(height: 10),
             ],
