@@ -1,13 +1,15 @@
-class CreatePostT {
+import 'dart:io';
+
+class Createpostmodel {
   final String userId;
-  final String code;
-  final String? imageUrl;
+  final String? code;
+  final File? imageUrl;
   final String? caption;
   final List<String>? tags;
 
-  CreatePostT({
+  Createpostmodel({
     required this.userId,
-    required this.code,
+    this.code,
     this.imageUrl,
     this.caption,
     this.tags,
@@ -25,11 +27,11 @@ class CreatePostT {
   }
 
   // Create Dart object from JSON
-  factory CreatePostT.fromJson(Map<String, dynamic> json) {
-    return CreatePostT(
+  factory Createpostmodel.fromJson(Map<String, dynamic> json) {
+    return Createpostmodel(
       userId: json['user_id'] as String,
       code: json['code'] as String,
-      imageUrl: json['image_url'] as String?,
+      imageUrl: json['image_url'] as File?,
       caption: json['caption'] as String?,
       tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
     );
