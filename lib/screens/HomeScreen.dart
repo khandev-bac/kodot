@@ -64,7 +64,7 @@ class _HomescreenState extends State<Homescreen> {
                   selectedIndex = 2;
                 }),
                 child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedVideo01,
+                  icon: HugeIcons.strokeRoundedAddSquare,
                   color: AppColors.customWhite,
                   strokeWidth: selectedIndex == 2 ? 2.0 : 1.0,
                   size: 30,

@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:kodot/contants/Colors.dart';
 
 class AnimatedCapsuleButton extends StatelessWidget {
   final String text;
-  final bool isSelected;
   final VoidCallback onTap;
-
+  final Color btnColor;
   const AnimatedCapsuleButton({
     super.key,
     required this.text,
-    required this.isSelected,
+
     required this.onTap,
+    required this.btnColor,
   });
 
   @override
@@ -18,29 +19,27 @@ class AnimatedCapsuleButton extends StatelessWidget {
       onTap: onTap,
       child: AnimatedScale(
         duration: const Duration(milliseconds: 200),
-        scale: isSelected ? 1.08 : 1.0,
+        scale: 1.08,
         curve: Curves.easeOutBack,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 250),
           curve: Curves.easeOut,
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
           decoration: BoxDecoration(
-            color: isSelected ? Colors.white : Colors.transparent,
+            color: btnColor,
             borderRadius: BorderRadius.circular(40),
-            border: Border.all(
-              color: isSelected ? Colors.white : Colors.white.withOpacity(0.6),
-              width: 2,
-            ),
+            border: Border.all(color: AppColors.customWhite, width: 0.8),
           ),
           child: AnimatedDefaultTextStyle(
             duration: const Duration(milliseconds: 250),
             curve: Curves.easeOut,
             style: TextStyle(
-              color: isSelected ? Colors.black : Colors.white,
+              fontFamily: "Jost",
+              color: AppColors.customWhite,
               fontSize: 18,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w500,
             ),
-            child: Text(text, style: TextStyle(fontFamily: "Jost")),
+            child: Text(text),
           ),
         ),
       ),
