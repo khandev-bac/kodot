@@ -13,7 +13,7 @@ class Postservice {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       try {
-        String? idToken = await user.getIdToken();
+        String? idToken = await user.getIdToken(true);
         if (kDebugMode) {
           print('User ID Token: $idToken');
         }
@@ -209,10 +209,11 @@ class Postservice {
     }
   }
 
-  Future<AppSuccessMessage<List<Createpostmodel?>>?> GetAllPosts() async {
+  Future<AppSuccessMessage<List<Createpostmodel>>?> GetAllPosts() async {
     try {
       final idToken = await getUserIdToken();
       final url = Uri.parse("${Appurls.backendURLPost}/home");
+
       final response = await http.get(
         url,
         headers: {
@@ -220,22 +221,26 @@ class Postservice {
           "Authorization": "Bearer $idToken",
         },
       );
+
       final resBody = jsonDecode(response.body);
+
       if (kDebugMode) {
-        print("All response: ${resBody}");
+        print("All response: $resBody");
       }
+
       if (response.statusCode == 200) {
         return AppSuccessMessage.fromJson(
           resBody,
-          (json) => (json as List)
+          (data) => (data as List)
               .map((item) => Createpostmodel.fromJson(item))
               .toList(),
         );
       }
+
       return null;
     } catch (e) {
       if (kDebugMode) {
-        print("GetAllUserPost ERROR: $e");
+        print("GetAllPosts ERROR: $e");
       }
       return null;
     }

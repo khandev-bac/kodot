@@ -1,15 +1,13 @@
-import 'dart:io';
-
 class Createpostmodel {
-  final String userId;
+  final String? id;
   final int? boost;
   final String? code;
-  final File? imageUrl;
+  final String? imageUrl;
   final String? caption;
   final List<String>? tags;
 
   Createpostmodel({
-    required this.userId,
+    this.id,
     this.boost,
     this.code,
     this.imageUrl,
@@ -17,27 +15,16 @@ class Createpostmodel {
     this.tags,
   });
 
-  // Convert Dart object to JSON
-  Map<String, dynamic> toJson() {
-    return {
-      'user_id': userId,
-      'code': code,
-      if (boost != null) 'boost': bool,
-      if (imageUrl != null) 'image_url': imageUrl,
-      if (caption != null) 'caption': caption,
-      if (tags != null) 'tags': tags,
-    };
-  }
-
-  // Create Dart object from JSON
   factory Createpostmodel.fromJson(Map<String, dynamic> json) {
     return Createpostmodel(
-      userId: json['user_id'] as String,
-      boost: json["boost"] as int,
-      code: json['code'] as String,
-      imageUrl: json['image_url'] as File?,
+      id: json['id'] as String?,
+      boost: json['boost'] as int?,
+      code: json['code'] as String?,
+      imageUrl: json['image_url'] as String?,
       caption: json['caption'] as String?,
-      tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      tags: json['tags'] != null
+          ? (json['tags'] as List).map((e) => e.toString()).toList()
+          : null,
     );
   }
 }

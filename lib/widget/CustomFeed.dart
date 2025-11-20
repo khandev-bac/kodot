@@ -5,11 +5,11 @@ import 'package:hugeicons/hugeicons.dart';
 
 class MatrixRainPostWidget extends StatefulWidget {
   final String? author;
-  final String? avatar;
+  final String? avatarUrl; // Changed from avatar emoji to URL
   final String? time;
   final String? caption;
   final String? code;
-  final String? imageEmoji;
+  final String? imageUrl; // Changed from imageEmoji to URL
   final List<String>? tags;
   final int boosts;
   final int messages;
@@ -29,11 +29,11 @@ class MatrixRainPostWidget extends StatefulWidget {
   const MatrixRainPostWidget({
     Key? key,
     this.author,
-    this.avatar,
+    this.avatarUrl,
     this.time,
     this.caption,
     this.code,
-    this.imageEmoji,
+    this.imageUrl,
     this.tags,
     this.boosts = 0,
     this.messages = 0,
@@ -88,7 +88,7 @@ class _MatrixRainPostWidgetState extends State<MatrixRainPostWidget> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Social Icons Row
-          if (widget.avatar != null || widget.author != null) ...[
+          if (widget.avatarUrl != null || widget.author != null) ...[
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: Row(
@@ -196,21 +196,21 @@ class _MatrixRainPostWidgetState extends State<MatrixRainPostWidget> {
                 ],
               ),
             ),
-            // Padding(
-            //   padding: const EdgeInsets.symmetric(horizontal: 16),
-            //   child: Divider(color: MatrixRainColors.borderGreen, height: 1),
-            // ),
           ],
 
           // Profile Section
-          if (widget.avatar != null || widget.author != null)
+          if (widget.avatarUrl != null || widget.author != null)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
               child: Row(
                 children: [
-                  if (widget.avatar != null)
-                    Text(widget.avatar!, style: const TextStyle(fontSize: 32)),
-                  if (widget.avatar != null) const SizedBox(width: 12),
+                  if (widget.avatarUrl != null)
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundImage: NetworkImage(widget.avatarUrl!),
+                      backgroundColor: MatrixRainColors.bgGreenTint,
+                    ),
+                  if (widget.avatarUrl != null) const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -258,7 +258,7 @@ class _MatrixRainPostWidgetState extends State<MatrixRainPostWidget> {
           ],
 
           // Code or Image Section
-          if (widget.code != null || widget.imageEmoji != null)
+          if (widget.code != null || widget.imageUrl != null)
             _buildContentSection(),
 
           // Tags
@@ -471,19 +471,14 @@ class _MatrixRainPostWidgetState extends State<MatrixRainPostWidget> {
   }
 
   Widget _buildContentSection() {
-    final hasCode = widget.code != null;
-    final hasImage = widget.imageEmoji != null;
+    final hasCode = widget.code != null && widget.code!.isNotEmpty;
+    final hasImage = widget.imageUrl != null && widget.imageUrl!.isNotEmpty;
 
     // Code Focus
     if (hasCode && !hasImage) {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
-          children: [
-            _buildCodeBlock(),
-            if (hasImage) ...[const SizedBox(height: 12), _buildImageBlock()],
-          ],
-        ),
+        child: Column(children: [_buildCodeBlock()]),
       );
     }
 
@@ -491,15 +486,7 @@ class _MatrixRainPostWidgetState extends State<MatrixRainPostWidget> {
     if (hasImage && !hasCode) {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
-          children: [
-            _buildImageBlock(),
-            if (hasCode) ...[
-              const SizedBox(height: 12),
-              _buildCodeBlockSmall(),
-            ],
-          ],
-        ),
+        child: Column(children: [_buildImageBlock()]),
       );
     }
 
@@ -619,10 +606,34 @@ class _MatrixRainPostWidgetState extends State<MatrixRainPostWidget> {
         border: Border.all(color: MatrixRainColors.borderGreen, width: 1),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Center(
-        child: Text(
-          widget.imageEmoji ?? '',
-          style: const TextStyle(fontSize: 96),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(7),
+        child: Image.network(
+          widget.imageUrl ?? '',
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Center(
+              child: Icon(
+                Icons.image_not_supported,
+                color: MatrixRainColors.green400,
+                size: 50,
+              ),
+            );
+          },
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Center(
+              child: CircularProgressIndicator(
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                          loadingProgress.expectedTotalBytes!
+                    : null,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  MatrixRainColors.green400,
+                ),
+              ),
+            );
+          },
         ),
       ),
     );

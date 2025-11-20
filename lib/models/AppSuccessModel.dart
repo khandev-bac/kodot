@@ -11,7 +11,7 @@ class AppSuccessMessage<T> {
 
   factory AppSuccessMessage.fromJson(
     Map<String, dynamic> json,
-    T Function(Map<String, dynamic>) fromJsonT,
+    T Function(dynamic) fromJsonT,
   ) {
     return AppSuccessMessage(
       message: json['message'] as String,
