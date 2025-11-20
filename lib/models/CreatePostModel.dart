@@ -2,6 +2,7 @@ import 'dart:io';
 
 class Createpostmodel {
   final String userId;
+  final int? boost;
   final String? code;
   final File? imageUrl;
   final String? caption;
@@ -9,6 +10,7 @@ class Createpostmodel {
 
   Createpostmodel({
     required this.userId,
+    this.boost,
     this.code,
     this.imageUrl,
     this.caption,
@@ -20,6 +22,7 @@ class Createpostmodel {
     return {
       'user_id': userId,
       'code': code,
+      if (boost != null) 'boost': bool,
       if (imageUrl != null) 'image_url': imageUrl,
       if (caption != null) 'caption': caption,
       if (tags != null) 'tags': tags,
@@ -30,6 +33,7 @@ class Createpostmodel {
   factory Createpostmodel.fromJson(Map<String, dynamic> json) {
     return Createpostmodel(
       userId: json['user_id'] as String,
+      boost: json["boost"] as int,
       code: json['code'] as String,
       imageUrl: json['image_url'] as File?,
       caption: json['caption'] as String?,

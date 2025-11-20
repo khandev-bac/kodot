@@ -44,6 +44,7 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   file_picker: ^10.3.6
   photo_manager: ^3.7.1
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:
