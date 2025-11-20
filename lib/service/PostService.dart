@@ -179,4 +179,65 @@ class Postservice {
       return {"message": "Something went wrong", "statusCode": 500};
     }
   }
+
+  Future<AppSuccessMessage<List<Createpostmodel?>>?> GetAllUserPost() async {
+    try {
+      final idToken = await getUserIdToken();
+      final url = Uri.parse("${Appurls.backendURLPost}/");
+      final resposne = await http.get(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $idToken",
+        },
+      );
+      final responseBody = jsonDecode(resposne.body);
+      if (resposne.statusCode == 200) {
+        return AppSuccessMessage.fromJson(
+          responseBody,
+          (json) => (json as List)
+              .map((item) => Createpostmodel.fromJson(item))
+              .toList(),
+        );
+      }
+      return null;
+    } catch (e) {
+      if (kDebugMode) {
+        print("GetAllUserPost ERROR: $e");
+      }
+      return null;
+    }
+  }
+
+  Future<AppSuccessMessage<List<Createpostmodel?>>?> GetAllPosts() async {
+    try {
+      final idToken = await getUserIdToken();
+      final url = Uri.parse("${Appurls.backendURLPost}/home");
+      final response = await http.get(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $idToken",
+        },
+      );
+      final resBody = jsonDecode(response.body);
+      if (kDebugMode) {
+        print("All response: ${resBody}");
+      }
+      if (response.statusCode == 200) {
+        return AppSuccessMessage.fromJson(
+          resBody,
+          (json) => (json as List)
+              .map((item) => Createpostmodel.fromJson(item))
+              .toList(),
+        );
+      }
+      return null;
+    } catch (e) {
+      if (kDebugMode) {
+        print("GetAllUserPost ERROR: $e");
+      }
+      return null;
+    }
+  }
 }
