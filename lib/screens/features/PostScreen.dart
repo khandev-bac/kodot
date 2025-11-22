@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:kodot/contants/Colors.dart';
+import 'package:kodot/models/AppSuccessModel.dart';
+import 'package:kodot/models/FeedModel.dart';
 import 'package:kodot/screens/features/CodePostScreen.dart';
 import 'package:kodot/screens/features/UploadPostImageScreen.dart';
+import 'package:kodot/service/PostService.dart';
 import 'package:kodot/widget/CustomCircle.dart';
+import 'package:kodot/widget/CustomFeed.dart';
 
 class Postscreen extends StatefulWidget {
   const Postscreen({super.key});
@@ -13,7 +17,23 @@ class Postscreen extends StatefulWidget {
 }
 
 class _PostscreenState extends State<Postscreen> {
-  List post = [];
+  late Future<AppSuccessMessage<List<FeedPostModel?>>?> currentPost;
+  final Postservice postservice = Postservice();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPost();
+  }
+
+  List<FeedPostModel> post = [];
+
+  void _loadPost() {
+    setState(() {
+      currentPost = postservice.GetAllUserPost();
+    });
+  }
+
   void _openBottomSheet() {
     showModalBottomSheet(
       context: context,
@@ -33,7 +53,6 @@ class _PostscreenState extends State<Postscreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // --- Drag handle ---
               Container(
                 width: 45,
                 height: 5,
@@ -43,8 +62,6 @@ class _PostscreenState extends State<Postscreen> {
                 ),
               ),
               SizedBox(height: 15),
-
-              // --- Header with title & close button ---
               Row(
                 children: [
                   Expanded(
@@ -63,10 +80,7 @@ class _PostscreenState extends State<Postscreen> {
                   ),
                 ],
               ),
-
               SizedBox(height: 20),
-
-              // --- Options ---
               ListTile(
                 leading: HugeIcon(
                   icon: HugeIcons.strokeRoundedCode,
@@ -78,24 +92,7 @@ class _PostscreenState extends State<Postscreen> {
                 ),
                 onTap: () {
                   Navigator.of(context).push(
-                    PageRouteBuilder(
-                      pageBuilder: (context, animation, secondaryAnimation) =>
-                          Codepostscreen(),
-                      transitionsBuilder:
-                          (context, animation, secondaryAnimation, child) {
-                            const begin = Offset(0, 1);
-                            const end = Offset.zero;
-                            final curve = Curves.easeOutCubic;
-                            final tween = Tween(
-                              begin: begin,
-                              end: end,
-                            ).chain(CurveTween(curve: curve));
-                            return SlideTransition(
-                              position: animation.drive(tween),
-                              child: child,
-                            );
-                          },
-                    ),
+                    MaterialPageRoute(builder: (_) => const Codepostscreen()),
                   );
                 },
               ),
@@ -110,23 +107,8 @@ class _PostscreenState extends State<Postscreen> {
                 ),
                 onTap: () {
                   Navigator.of(context).push(
-                    PageRouteBuilder(
-                      pageBuilder: (context, animation, secondaryAnimation) =>
-                          UploadPostImageScreen(),
-                      transitionsBuilder:
-                          (context, animation, secondaryAnimation, child) {
-                            const begin = Offset(0, 1);
-                            const end = Offset.zero;
-                            final curve = Curves.easeOutCubic;
-                            final tween = Tween(
-                              begin: begin,
-                              end: end,
-                            ).chain(CurveTween(curve: curve));
-                            return SlideTransition(
-                              position: animation.drive(tween),
-                              child: child,
-                            );
-                          },
+                    MaterialPageRoute(
+                      builder: (_) => const UploadPostImageScreen(),
                     ),
                   );
                 },
@@ -142,49 +124,82 @@ class _PostscreenState extends State<Postscreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20),
-          child: Stack(
-            children: [
-              //// list of all posts
-              post.isEmpty
-                  ? Center(
-                      child: Text(
-                        "Nothing you have shared",
-                        style: TextStyle(
-                          fontFamily: "Jost",
-                          fontSize: 18,
-                          color: AppColors.customWhite,
+      appBar: AppBar(
+        title: Text(
+          "Your posts",
+          style: TextStyle(color: AppColors.customWhite),
+        ),
+        backgroundColor: AppColors.customBlack,
+      ),
+      body: FutureBuilder<AppSuccessMessage<List<FeedPostModel?>>?>(
+        future: currentPost,
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return Center(
+              child: CircularProgressIndicator(color: AppColors.customWhite),
+            );
+          }
+
+          // unwrap response
+          final data = snapshot.data!.data!;
+
+          post = data.where((e) => e != null).cast<FeedPostModel>().toList();
+
+          return Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: Stack(
+              children: [
+                post.isEmpty
+                    ? Center(
+                        child: Text(
+                          "Nothing you have shared",
+                          style: TextStyle(
+                            fontFamily: "Jost",
+                            fontSize: 18,
+                            color: AppColors.customWhite,
+                          ),
                         ),
+                      )
+                    : ListView.builder(
+                        itemCount: post.length,
+                        itemBuilder: (context, index) {
+                          final FeedPostModel postData = post[index];
+
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: MatrixRainPostWidget(
+                              author: postData.username,
+                              avatarUrl: postData.profile,
+                              caption: postData.caption ?? "",
+                              code: postData.code ?? "",
+                              tags: postData.tags ?? [],
+                              imageUrl: postData.imageUrl ?? "",
+                              githubUrl: postData.socials.github,
+                              instagramUrl: postData.socials.instagram,
+                              xUrl: "",
+                              linkedinUrl: "",
+                              emailUrl: "",
+                            ),
+                          );
+                        },
                       ),
-                    )
-                  : Center(
-                      child: Text(
-                        "Todo build listview",
-                        style: TextStyle(
-                          fontFamily: "Jost",
-                          fontSize: 18,
-                          color: AppColors.customWhite,
-                        ),
-                      ),
+
+                Positioned(
+                  bottom: 20,
+                  left: 50,
+                  right: 50,
+                  child: Center(
+                    child: AnimatedCapsuleButton(
+                      text: 'Create Post',
+                      btnColor: AppColors.customDarkBlue,
+                      onTap: () => _openBottomSheet(),
                     ),
-              // post button
-              Positioned(
-                bottom: 20,
-                left: 50,
-                right: 50,
-                child: Center(
-                  child: AnimatedCapsuleButton(
-                    text: 'Create Post',
-                    btnColor: AppColors.customDarkBlue,
-                    onTap: () => _openBottomSheet(),
                   ),
                 ),
-              ),
-            ],
-          ),
-        ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

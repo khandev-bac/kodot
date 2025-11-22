@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:kodot/contants/Colors.dart';
+import 'package:kodot/service/PostService.dart';
 import 'package:kodot/widget/CustomButton.dart';
 
 class Codepostscreen extends StatefulWidget {
@@ -15,6 +16,46 @@ class _CodepostscreenState extends State<Codepostscreen> {
   final TextEditingController captionController = TextEditingController();
   final TextEditingController tagController = TextEditingController();
   List<String> tags = [];
+
+  bool isLoading = false;
+
+  // -------------------------
+  // SUBMIT FUNCTION
+  // -------------------------
+  Future<void> submitPost() async {
+    final Postservice postservice = Postservice();
+    final code = codeController.text.trim();
+    final caption = captionController.text.trim();
+
+    if (code.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Code cannot be empty")));
+      return;
+    }
+
+    setState(() => isLoading = true);
+
+    final response = await postservice.CreateCodePostService(
+      code: code,
+      caption: caption,
+      tags: tags,
+    );
+
+    setState(() => isLoading = false);
+
+    if (response != null && response.data != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(response.message)));
+
+      Navigator.pop(context); // go back home
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(response!.message)));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +96,7 @@ class _CodepostscreenState extends State<Codepostscreen> {
                 keyboardType: TextInputType.multiline,
                 style: TextStyle(
                   color: AppColors.customWhite,
-                  fontFamily: 'monospace', // developer-friendly font
+                  fontFamily: 'monospace',
                 ),
                 decoration: InputDecoration(
                   hintText: "Drop today’s build, hacks, or mysterious errors…",
@@ -131,10 +172,14 @@ class _CodepostscreenState extends State<Codepostscreen> {
             ),
 
             SizedBox(height: 20),
-            Custombutton(text: "Post"),
-            SizedBox(height: 30),
 
-            // Submit button
+            // Post button
+            Custombutton(
+              text: isLoading ? "Posting..." : "Post",
+              onTap: isLoading ? null : submitPost,
+            ),
+
+            SizedBox(height: 30),
           ],
         ),
       ),

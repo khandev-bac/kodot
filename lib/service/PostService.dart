@@ -7,6 +7,7 @@ import 'package:kodot/contants/AppUrls.dart';
 import 'package:kodot/models/AppSuccessModel.dart';
 import 'package:kodot/models/CreatePostModel.dart';
 import 'package:http/http.dart' as http;
+import 'package:kodot/models/FeedModel.dart';
 
 class Postservice {
   Future<String?> getUserIdToken() async {
@@ -41,27 +42,32 @@ class Postservice {
   }) async {
     try {
       final idToken = await getUserIdToken();
+      if (kDebugMode) {
+        print("UsrId: create post : ${idToken}");
+      }
       final url = Uri.parse("${Appurls.backendURLPost}/post");
-      final response = await http.post(
-        url,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $idToken",
-        },
-        body: jsonEncode({"code": code, "caption": caption, "tags": tags}),
-      );
+      var resquest = http.MultipartRequest("POST", url);
+      resquest.headers["Authorization"] = "Bearer $idToken";
+      if (code.trim().isNotEmpty) {
+        resquest.fields["code"] = code;
+      }
+      if (caption.trim().isNotEmpty) {
+        resquest.fields["caption"] = code;
+      }
+      if (tags.isNotEmpty) {
+        resquest.fields["tags"] = tags.join(",");
+      }
+      final streamed = await resquest.send();
+      final response = await http.Response.fromStream(streamed);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        if (kDebugMode) {
-          print("Response data: ${data}");
-        }
         return AppSuccessMessage.fromJson(
           data,
           (json) => Createpostmodel.fromJson(json),
         );
       } else {
         if (kDebugMode) {
-          print('Error: ${response.statusCode}, body: ${response.body}');
+          print("Error: ${response.statusCode}, body: ${response.body}");
         }
         return null;
       }
@@ -180,7 +186,7 @@ class Postservice {
     }
   }
 
-  Future<AppSuccessMessage<List<Createpostmodel?>>?> GetAllUserPost() async {
+  Future<AppSuccessMessage<List<FeedPostModel?>>?> GetAllUserPost() async {
     try {
       final idToken = await getUserIdToken();
       final url = Uri.parse("${Appurls.backendURLPost}/");
@@ -196,7 +202,7 @@ class Postservice {
         return AppSuccessMessage.fromJson(
           responseBody,
           (json) => (json as List)
-              .map((item) => Createpostmodel.fromJson(item))
+              .map((item) => FeedPostModel.fromJson(item))
               .toList(),
         );
       }
@@ -209,7 +215,7 @@ class Postservice {
     }
   }
 
-  Future<AppSuccessMessage<List<Createpostmodel>>?> GetAllPosts() async {
+  Future<AppSuccessMessage<List<FeedPostModel>>?> GetAllPosts() async {
     try {
       final idToken = await getUserIdToken();
       final url = Uri.parse("${Appurls.backendURLPost}/home");
@@ -232,7 +238,7 @@ class Postservice {
         return AppSuccessMessage.fromJson(
           resBody,
           (data) => (data as List)
-              .map((item) => Createpostmodel.fromJson(item))
+              .map((item) => FeedPostModel.fromJson(item))
               .toList(),
         );
       }

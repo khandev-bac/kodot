@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kodot/contants/Colors.dart';
 import 'package:kodot/models/AppSuccessModel.dart' show AppSuccessMessage;
-import 'package:kodot/models/CreatePostModel.dart';
+import 'package:kodot/models/FeedModel.dart';
 import 'package:kodot/service/PostService.dart';
 import 'package:kodot/widget/CustomFeed.dart';
 
@@ -13,12 +13,12 @@ class Mainscreen extends StatefulWidget {
 }
 
 class _MainscreenState extends State<Mainscreen> {
-  late Future<AppSuccessMessage<List<Createpostmodel?>>?> futurePosts;
+  late Future<AppSuccessMessage<List<FeedPostModel?>>?> futurePosts;
   final Postservice postservice = Postservice();
   @override
   void initState() {
     super.initState();
-    futurePosts = postservice.GetAllPosts(); // load FEED
+    futurePosts = postservice.GetAllPosts();
   }
 
   @override
@@ -35,26 +35,13 @@ class _MainscreenState extends State<Mainscreen> {
           ),
         ),
       ),
-      body: FutureBuilder<AppSuccessMessage<List<Createpostmodel?>>?>(
+      body: FutureBuilder<AppSuccessMessage<List<FeedPostModel?>>?>(
         future: futurePosts,
         builder: (context, snapshot) {
           // Loading animation
           if (!snapshot.hasData) {
             return Center(
-              child: TweenAnimationBuilder<double>(
-                tween: Tween(begin: 0, end: 1),
-                duration: const Duration(milliseconds: 500), // ↓ faster spin
-                onEnd: () {},
-                builder: (context, value, child) {
-                  return Transform.rotate(
-                    angle: value * 6.28, // full circle
-                    child: CircularProgressIndicator(
-                      backgroundColor: MatrixRainColors.emerald400,
-                      color: MatrixRainColors.bgPrimary,
-                    ),
-                  );
-                },
-              ),
+              child: CircularProgressIndicator(color: AppColors.customWhite),
             );
           }
 
@@ -79,17 +66,16 @@ class _MainscreenState extends State<Mainscreen> {
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 child: MatrixRainPostWidget(
-                  author: "Khan_dev",
-                  avatarUrl:
-                      "https://lh3.googleusercontent.com/a/ACg8ocKVirZ-9X3PWGkurNdBF-jMJALVPyIY6cImWel8UszRk1Vvcw=s96-c",
+                  author: post.username,
+                  avatarUrl: post.profile,
                   caption: post.caption ?? "",
                   code: post.code ?? "",
-                  tags: post.tags ?? [],
+                  tags: post.tags,
                   imageUrl: post.imageUrl ?? "",
-                  githubUrl: "",
-                  instagramUrl: "",
+                  githubUrl: post.socials.github,
+                  instagramUrl: post.socials.instagram,
                   xUrl: "",
-                  linkedinUrl: "",
+                  linkedinUrl: post.socials.linkedIn,
                   emailUrl: "",
                 ),
               );
