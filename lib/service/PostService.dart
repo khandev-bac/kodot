@@ -80,7 +80,7 @@ class Postservice {
   }
 
   // ignore: non_constant_identifier_names
-  Future<AppSuccessMessage<Createpostmodel?>?> CreateImagePost({
+  Future<AppSuccessMessage<FeedPostModel?>?> CreateImagePost({
     required File image,
     String? caption,
     List<String>? tags,
@@ -108,7 +108,7 @@ class Postservice {
         }
         return AppSuccessMessage.fromJson(
           data,
-          (json) => Createpostmodel.fromJson(json),
+          (json) => FeedPostModel.fromJson(json),
         );
       } else {
         if (kDebugMode) {

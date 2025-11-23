@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:kodot/contants/Colors.dart';
+import 'package:kodot/service/PostService.dart';
 import 'package:kodot/widget/CustomButton.dart';
 import 'package:photo_manager/photo_manager.dart';
 
@@ -225,10 +226,43 @@ class _UploadPostImageScreenState extends State<UploadPostImageScreen> {
               visible: selectedImage != null,
               child: Custombutton(
                 text: "Post",
-                onTap: () {
-                  print(
-                    "Post with image, caption: ${captionController.text}, tags: $tags",
+                onTap: () async {
+                  if (selectedImage == null) return;
+                  final file = await selectedImage!.file;
+                  if (file == null) return;
+                  // Loading
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (_) => Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.customWhite,
+                      ),
+                    ),
                   );
+                  final Postservice postservice = Postservice();
+                  final response = await postservice.CreateImagePost(
+                    image: file,
+                    caption: captionController.text.trim(),
+                    tags: tags,
+                  );
+                  Navigator.pop(context);
+                  if (response == null || response.data == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(response!.message),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(response.message),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                  Navigator.pop(context);
                 },
               ),
             ),

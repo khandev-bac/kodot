@@ -173,7 +173,7 @@ class _PostscreenState extends State<Postscreen> {
                               caption: postData.caption ?? "",
                               code: postData.code ?? "",
                               tags: postData.tags ?? [],
-                              imageUrl: postData.imageUrl ?? "",
+                              // imageUrl: postData.profile ?? "",
                               githubUrl: postData.socials.github,
                               instagramUrl: postData.socials.instagram,
                               xUrl: "",

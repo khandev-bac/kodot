@@ -28,7 +28,7 @@ class FeedPostModel {
     return FeedPostModel(
       postId: json["post_id"],
       code: json["code"],
-      imageUrl: json["image_url"],
+      imageUrl: json["image_url"] ?? "",
       caption: json["caption"],
       tags: List<String>.from(json["tags"] ?? []),
       boost: json["boost_score"],
