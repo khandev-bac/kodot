@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -8,6 +9,8 @@ import 'package:kodot/models/AppSuccessModel.dart';
 import 'package:kodot/models/CreatePostModel.dart';
 import 'package:http/http.dart' as http;
 import 'package:kodot/models/FeedModel.dart';
+import 'package:kodot/models/InboxMessageModel.dart';
+import 'package:kodot/models/RecivedMessage.dart';
 import 'package:kodot/models/UserUpdateInfo.dart';
 
 class Postservice {
@@ -293,9 +296,31 @@ class Postservice {
   }
 
   //TODO: boost
-  //TODO: inbox
-  //TODO: share // optional
-  // TODO: search DONE:
+  Future<Map<String, dynamic>?> Boost(String? postId) async {
+    try {
+      final idToken = await getUserIdToken();
+      final url = Uri.parse("${Appurls.backendURLBoost}/${postId}");
+      final response = await http.get(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $idToken",
+        },
+      );
+      final resbody = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return {"count": resbody["count"] as Int64};
+      }
+      return null;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Boost ERROR: $e");
+      }
+      return null;
+    }
+  }
+  // TODO: share // optional
+
   Future<AppSuccessMessage<List<FeedPostModel>>?> SearchQuery(
     String search,
   ) async {
@@ -358,6 +383,59 @@ class Postservice {
     }
   }
 
-  //inbox
-  
+  // create inbox
+  Future<Recivedmessage?> CreateInboxMessage(String? postId) async {
+    try {
+      final idToken = await getUserIdToken();
+      final url = Uri.parse("${Appurls.backendURLInbox}/${postId}");
+      final response = await http.get(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $idToken",
+        },
+      );
+      final resbody = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return Recivedmessage.fromJson(resbody);
+      }
+      return null;
+    } catch (e) {
+      if (kDebugMode) {
+        print("GetAllUserInbox ERROR: $e");
+      }
+      return null;
+    }
+  }
+
+  //inbox get_all_inbox
+  // ignore: non_constant_identifier_names
+  Future<AppSuccessMessage<List<Inboxmessagemodel?>>?> GetAllUserInbox() async {
+    try {
+      final idToken = await getUserIdToken();
+      final url = Uri.parse("${Appurls.backendURLInbox}/");
+      final response = await http.get(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $idToken",
+        },
+      );
+      final resbody = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return AppSuccessMessage.fromJson(
+          resbody,
+          (data) => (data as List)
+              .map((json) => Inboxmessagemodel.fromJson(json))
+              .toList(),
+        );
+      }
+      return null;
+    } catch (e) {
+      if (kDebugMode) {
+        print("GetAllUserInbox ERROR: $e");
+      }
+      return null;
+    }
+  }
 }

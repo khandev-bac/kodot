@@ -4,4 +4,6 @@ class Appurls {
   static String backendProURL = "http://10.0.2.2:3000/api/v1/auth/pro";
   static String backendURLPost = "http://10.0.2.2:3000/api/v1/post";
   static String backendURLSearch = "http://10.0.2.2:3000/api/v1/search";
+  static String backendURLInbox = "http://10.0.2.2:3000/api/v1/inbox";
+  static String backendURLBoost = "http://10.0.2.2:3000/api/v1/boost";
 }
