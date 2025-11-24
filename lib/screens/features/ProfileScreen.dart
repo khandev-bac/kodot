@@ -34,8 +34,6 @@ class _ProfilSreenState extends State<ProfilSreen> {
       user = res; // ❌ No more user! access before assignment
       isLoading = false;
     });
-
-    print("User data: ${user?.data?.Email}");
   }
 
   String formatJoinDate(String? isoString) {
@@ -127,6 +125,7 @@ class _ProfilSreenState extends State<ProfilSreen> {
             Text(
               formatJoinDate(data.CreatedAt),
               style: TextStyle(
+                // ignore: deprecated_member_use
                 color: AppColors.customWhite.withOpacity(0.6),
                 fontSize: 15,
                 fontFamily: "Jost",
@@ -140,8 +139,10 @@ class _ProfilSreenState extends State<ProfilSreen> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
             decoration: BoxDecoration(
+              // ignore: deprecated_member_use
               color: AppColors.customWhite.withOpacity(0.05),
               borderRadius: BorderRadius.circular(14),
+              // ignore: deprecated_member_use
               border: Border.all(color: AppColors.customWhite.withOpacity(0.1)),
             ),
             child: Row(
@@ -179,9 +180,11 @@ class _ProfilSreenState extends State<ProfilSreen> {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
               decoration: BoxDecoration(
+                // ignore: deprecated_member_use
                 color: AppColors.customWhite.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
+                  // ignore: deprecated_member_use
                   color: AppColors.customWhite.withOpacity(0.1),
                 ),
               ),
@@ -221,6 +224,7 @@ class _ProfilSreenState extends State<ProfilSreen> {
           Text(
             "Made in India 🇮🇳",
             style: TextStyle(
+              // ignore: deprecated_member_use
               color: AppColors.customWhite.withOpacity(0.7),
               fontSize: 14,
               fontFamily: "Jost",

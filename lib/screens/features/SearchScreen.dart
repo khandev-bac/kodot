@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:kodot/contants/Colors.dart';
 import 'package:kodot/models/FeedModel.dart';
 import 'package:kodot/screens/features/PostScreenById.dart';

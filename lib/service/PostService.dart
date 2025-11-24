@@ -295,7 +295,7 @@ class Postservice {
   //TODO: boost
   //TODO: inbox
   //TODO: share // optional
-  // TODO: search
+  // TODO: search DONE:
   Future<AppSuccessMessage<List<FeedPostModel>>?> SearchQuery(
     String search,
   ) async {
@@ -357,4 +357,7 @@ class Postservice {
       return null;
     }
   }
+
+  //inbox
+  
 }
