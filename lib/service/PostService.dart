@@ -251,4 +251,37 @@ class Postservice {
       return null;
     }
   }
+
+  //TODO: boost
+  //TODO: inbox
+  //TODO: share // optional
+  // TODO: search
+  Future<AppSuccessMessage<List<FeedPostModel>>?> SearchQuery(
+    String search,
+  ) async {
+    try {
+      final url = Uri.parse("${Appurls.backendURLSearch}?search=$search");
+
+      final response = await http.get(
+        url,
+        headers: {"Content-Type": "application/json"},
+      );
+
+      final resBody = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return AppSuccessMessage.fromJson(
+          resBody,
+          (data) => (data as List)
+              .map((item) => FeedPostModel.fromJson(item))
+              .toList(),
+        );
+      }
+      return null;
+    } catch (e) {
+      if (kDebugMode) {
+        print("GetAllPosts ERROR: $e");
+      }
+      return null;
+    }
+  }
 }

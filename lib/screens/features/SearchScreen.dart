@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:kodot/contants/Colors.dart';
+import 'package:kodot/models/FeedModel.dart';
+import 'package:kodot/service/PostService.dart';
 
 class Searchscreen extends StatefulWidget {
   const Searchscreen({super.key});
@@ -11,24 +13,32 @@ class Searchscreen extends StatefulWidget {
 
 class _SearchscreenState extends State<Searchscreen> {
   final TextEditingController searchController = TextEditingController();
+  final Postservice postservice = Postservice();
 
   bool isLoading = false;
-  List<dynamic> searchResults = []; // Will hold API results later
+  List<FeedPostModel> searchResults = [];
 
-  // TODO: integrate search API here later
-  Future<void> searchPosts(String query) async {
-    if (query.isEmpty) {
+  Future<void> searchPosts(String text) async {
+    if (text.isEmpty) {
       setState(() => searchResults = []);
       return;
     }
 
-    // ---- API integration goes here ----
-    // setState(() => isLoading = true);
-    // final apiResponse = await SearchService().search(query);
-    // setState(() {
-    //   searchResults = apiResponse;
-    //   isLoading = false;
-    // });
+    setState(() => isLoading = true);
+
+    final apiRes = await postservice.SearchQuery(text);
+
+    if (apiRes != null && apiRes.data != null) {
+      setState(() {
+        searchResults = apiRes.data!;
+        isLoading = false;
+      });
+    } else {
+      setState(() {
+        searchResults = [];
+        isLoading = false;
+      });
+    }
   }
 
   @override
@@ -37,8 +47,8 @@ class _SearchscreenState extends State<Searchscreen> {
       backgroundColor: AppColors.customBlack,
       appBar: AppBar(
         title: const Text("Search"),
-        backgroundColor: AppColors.customBlack,
         foregroundColor: AppColors.customWhite,
+        backgroundColor: AppColors.customBlack,
         elevation: 0,
       ),
       body: Column(
@@ -54,11 +64,11 @@ class _SearchscreenState extends State<Searchscreen> {
               child: TextField(
                 controller: searchController,
                 style: TextStyle(color: AppColors.customWhite),
-                onChanged: (value) => searchPosts(value),
+                onChanged: searchPosts,
                 decoration: InputDecoration(
                   hintText: "Search posts, users or tags...",
                   hintStyle: TextStyle(
-                    color: AppColors.customWhite.withOpacity(0.5),
+                    color: AppColors.customWhite.withOpacity(0.4),
                     fontFamily: "Jost",
                   ),
                   prefixIcon: Icon(Icons.search, color: AppColors.customWhite),
@@ -72,7 +82,7 @@ class _SearchscreenState extends State<Searchscreen> {
             ),
           ),
 
-          // Results section
+          // Results
           Expanded(
             child: isLoading
                 ? Center(
@@ -83,11 +93,11 @@ class _SearchscreenState extends State<Searchscreen> {
                 : searchResults.isEmpty
                 ? Center(
                     child: Text(
-                      "Search something...?",
+                      "Search something...",
                       style: TextStyle(
                         color: AppColors.customWhite.withOpacity(0.4),
-                        fontSize: 16,
                         fontFamily: "Jost",
+                        fontSize: 16,
                       ),
                     ),
                   )
@@ -95,42 +105,74 @@ class _SearchscreenState extends State<Searchscreen> {
                     padding: const EdgeInsets.only(top: 10),
                     itemCount: searchResults.length,
                     itemBuilder: (context, index) {
-                      final item = searchResults[index];
+                      final FeedPostModel post = searchResults[index];
 
                       return Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 6,
                         ),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: AppColors.customWhite.withOpacity(0.05),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: AppColors.customWhite.withOpacity(0.1),
-                            ),
-                          ),
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: Colors.grey.shade800,
-                              child: const HugeIcon(
-                                icon: HugeIcons.strokeRoundedSearch01,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () {
+                            // TODO: Navigate to feed post page
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: AppColors.customWhite.withOpacity(0.05),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: AppColors.customWhite.withOpacity(0.1),
                               ),
                             ),
-                            title: Text(
-                              item["caption"] ?? "No caption",
-                              style: TextStyle(
-                                color: AppColors.customWhite,
-                                fontFamily: "Jost",
-                                fontSize: 16,
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                radius: 22,
+                                backgroundColor: Colors.grey.shade900,
+                                backgroundImage:
+                                    post.profile != null &&
+                                        post.profile!.isNotEmpty
+                                    ? NetworkImage(post.profile!)
+                                    : null,
+                                child:
+                                    post.profile == null ||
+                                        post.profile!.isEmpty
+                                    ? Icon(
+                                        Icons.person,
+                                        color: AppColors.customWhite,
+                                      )
+                                    : null,
                               ),
-                            ),
-                            subtitle: Text(
-                              item["username"] ?? "",
-                              style: TextStyle(
-                                color: AppColors.customWhite.withOpacity(0.5),
-                                fontFamily: "Jost",
+                              title: Text(
+                                post.caption?.isNotEmpty == true
+                                    ? post.caption!
+                                    : "No caption",
+                                style: TextStyle(
+                                  color: AppColors.customWhite,
+                                  fontFamily: "Jost",
+                                  fontSize: 15,
+                                ),
                               ),
+                              subtitle: Text(
+                                "@${post.username}",
+                                style: TextStyle(
+                                  color: AppColors.customWhite.withOpacity(0.5),
+                                  fontFamily: "Jost",
+                                ),
+                              ),
+                              trailing:
+                                  post.imageUrl != null &&
+                                      post.imageUrl!.isNotEmpty
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.network(
+                                        post.imageUrl!,
+                                        width: 45,
+                                        height: 45,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    )
+                                  : null,
                             ),
                           ),
                         ),
