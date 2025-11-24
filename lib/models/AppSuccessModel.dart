@@ -19,4 +19,8 @@ class AppSuccessMessage<T> {
       data: json['data'] != null ? fromJsonT(json['data']) : null,
     );
   }
+
+  get Profile => null;
+
+  get CreatedAt => null;
 }

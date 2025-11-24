@@ -8,6 +8,7 @@ import 'package:kodot/models/AppSuccessModel.dart';
 import 'package:kodot/models/CreatePostModel.dart';
 import 'package:http/http.dart' as http;
 import 'package:kodot/models/FeedModel.dart';
+import 'package:kodot/models/UserUpdateInfo.dart';
 
 class Postservice {
   Future<String?> getUserIdToken() async {
@@ -74,6 +75,45 @@ class Postservice {
     } catch (e) {
       if (kDebugMode) {
         print("Create code post failed: $e");
+      }
+      return null;
+    }
+  }
+
+  Future<AppSuccessMessage<Userinfo>?> GetUserData() async {
+    try {
+      final idToken = await getUserIdToken();
+      final url = Uri.parse("${Appurls.backendProURL}/user");
+
+      print("Calling /user endpoint...");
+      // print("ID Token: $idToken");
+
+      final response = await http.get(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $idToken",
+        },
+      );
+
+      print("Status code: ${response.statusCode}");
+      print("Raw response: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final resBody = jsonDecode(response.body);
+        if (kDebugMode) {
+          print("Decoded JSON: $resBody");
+        }
+        return AppSuccessMessage.fromJson(
+          resBody,
+          (data) => Userinfo.fromJson(data),
+        );
+      }
+
+      return null;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error getting userData: $e");
       }
       return null;
     }

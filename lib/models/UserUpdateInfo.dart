@@ -1,9 +1,9 @@
 class Userinfo {
-  late final String? userId;
-  late final String? UserName;
-  late final String? Email;
-  late final String? Profile;
-  late final String? CreatedAt;
+  final String? userId;
+  final String? UserName;
+  final String? Email;
+  final String? Profile;
+  final String? CreatedAt;
 
   Userinfo({
     this.userId,
@@ -15,11 +15,20 @@ class Userinfo {
 
   factory Userinfo.fromJson(Map<String, dynamic> json) {
     return Userinfo(
-      userId: json['id'] as String?,
+      userId: json['user_id'] as String?,
       UserName: json['username'] as String?,
       Email: json['email'] as String?,
-      Profile: json['profile'] as String?,
-      CreatedAt: json["created_at"] as String?,
+
+      // profile: {String: "...", Valid: true}
+      Profile: json['profile'] != null && json['profile']['Valid'] == true
+          ? json['profile']['String']
+          : null,
+
+      // created_at: {Time: "...", Valid: true}
+      CreatedAt:
+          json['created_at'] != null && json['created_at']['Valid'] == true
+          ? json['created_at']['Time']
+          : null,
     );
   }
 }
