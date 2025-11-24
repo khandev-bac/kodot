@@ -27,7 +27,7 @@ class MatrixRainPostWidget extends StatefulWidget {
   final VoidCallback? onShare;
 
   const MatrixRainPostWidget({
-    Key? key,
+    super.key,
     this.author,
     this.avatarUrl,
     this.time,
@@ -46,7 +46,7 @@ class MatrixRainPostWidget extends StatefulWidget {
     this.onBoost,
     this.onInbox,
     this.onShare,
-  }) : super(key: key);
+  });
 
   @override
   State<MatrixRainPostWidget> createState() => _MatrixRainPostWidgetState();

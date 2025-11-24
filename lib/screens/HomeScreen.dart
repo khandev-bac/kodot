@@ -9,6 +9,8 @@ import 'package:kodot/screens/features/ProfileScreen.dart';
 import 'package:kodot/screens/features/SearchScreen.dart';
 
 class Homescreen extends StatefulWidget {
+  const Homescreen({super.key});
+
   @override
   State<Homescreen> createState() => _HomescreenState();
 }

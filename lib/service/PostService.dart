@@ -43,7 +43,7 @@ class Postservice {
     try {
       final idToken = await getUserIdToken();
       if (kDebugMode) {
-        print("UsrId: create post : ${idToken}");
+        print("UsrId: create post : $idToken");
       }
       final url = Uri.parse("${Appurls.backendURLPost}/post");
       var resquest = http.MultipartRequest("POST", url);
@@ -104,7 +104,7 @@ class Postservice {
       if (response.statusCode == 200) {
         final data = jsonDecode(resBody);
         if (kDebugMode) {
-          print("Response data: ${data}");
+          print("Response data: $data");
         }
         return AppSuccessMessage.fromJson(
           data,
@@ -115,7 +115,7 @@ class Postservice {
           print("Failed to create post: ${response.statusCode}");
         }
         if (kDebugMode) {
-          print("Response string ${resBody}");
+          print("Response string $resBody");
         }
         return null;
       }
@@ -146,7 +146,7 @@ class Postservice {
       final data = jsonDecode(response.body);
       if (response.statusCode == 200) {
         if (kDebugMode) {
-          print("Edited post response: ${data}");
+          print("Edited post response: $data");
         }
         return {"message": data["message"], "statusCode": data["statusCode"]};
       } else {
@@ -175,7 +175,7 @@ class Postservice {
       final data = jsonDecode(response.body);
       if (response.statusCode == 200) {
         if (kDebugMode) {
-          print("Edited post response: ${data}");
+          print("Edited post response: $data");
         }
         return {"message": data["message"], "statusCode": data["statusCode"]};
       } else {

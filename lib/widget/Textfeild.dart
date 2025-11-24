@@ -36,7 +36,7 @@ class _AnimatedCapsuleTextFieldState extends State<AnimatedCapsuleTextField> {
 
   @override
   Widget build(BuildContext context) {
-    final errorText = widget.validator?.call(widget.controller.text) ?? null;
+    final errorText = widget.validator?.call(widget.controller.text);
     showError = errorText != null && errorText.isNotEmpty;
 
     return Column(

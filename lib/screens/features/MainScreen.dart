@@ -77,6 +77,8 @@ class _MainscreenState extends State<Mainscreen> {
                   xUrl: "",
                   linkedinUrl: post.socials.linkedIn,
                   emailUrl: "",
+                  boosts: post.boost ?? 0,
+                  shares: 10,
                 ),
               );
             },
