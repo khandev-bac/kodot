@@ -279,7 +279,40 @@ class Postservice {
       return null;
     } catch (e) {
       if (kDebugMode) {
-        print("GetAllPosts ERROR: $e");
+        print("Search ERROR: $e");
+      }
+      return null;
+    }
+  }
+
+  //GetPostById
+  Future<AppSuccessMessage<List<FeedPostModel>>?> GetPostId(
+    String postId,
+  ) async {
+    try {
+      final idToken = await getUserIdToken();
+      final url = Uri.parse("${Appurls.backendURLPost}/$postId");
+
+      final response = await http.get(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $idToken",
+        },
+      );
+      final resBody = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return AppSuccessMessage.fromJson(
+          resBody,
+          (data) => (data as List)
+              .map((item) => FeedPostModel.fromJson(item))
+              .toList(),
+        );
+      }
+      return null;
+    } catch (e) {
+      if (kDebugMode) {
+        print("GetPOSTBYID ERROR: $e");
       }
       return null;
     }

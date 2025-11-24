@@ -1,31 +1,25 @@
-class Userupdateinfo {
-  late final String userId;
-  late final String? interestedIn;
-  late final String? experience;
-  late final String? language;
-  late final String? ide;
-  late final String? os;
-  late final String? goal;
+class Userinfo {
+  late final String? userId;
+  late final String? UserName;
+  late final String? Email;
+  late final String? Profile;
+  late final String? CreatedAt;
 
-  Userupdateinfo({
-    required this.userId,
-    this.interestedIn,
-    this.experience,
-    this.language,
-    this.ide,
-    this.os,
-    this.goal,
+  Userinfo({
+    this.userId,
+    this.UserName,
+    this.Email,
+    this.Profile,
+    this.CreatedAt,
   });
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    data['user_id'] = userId;
-    if (interestedIn != null) data['interestedIn'] = interestedIn;
-    if (experience != null) data['experience'] = experience;
-    if (language != null) data['language'] = language;
-    if (ide != null) data['ide'] = ide;
-    if (os != null) data['os'] = os;
-    if (goal != null) data['goal'] = goal;
-    return data;
+  factory Userinfo.fromJson(Map<String, dynamic> json) {
+    return Userinfo(
+      userId: json['id'] as String?,
+      UserName: json['username'] as String?,
+      Email: json['email'] as String?,
+      Profile: json['profile'] as String?,
+      CreatedAt: json["created_at"] as String?,
+    );
   }
 }

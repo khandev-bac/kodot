@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:kodot/contants/Colors.dart';
 import 'package:kodot/models/FeedModel.dart';
+import 'package:kodot/screens/features/PostScreenById.dart';
 import 'package:kodot/service/PostService.dart';
 
 class Searchscreen extends StatefulWidget {
@@ -115,7 +116,13 @@ class _SearchscreenState extends State<Searchscreen> {
                         child: InkWell(
                           borderRadius: BorderRadius.circular(12),
                           onTap: () {
-                            // TODO: Navigate to feed post page
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    Postscreenbyid(postId: post.postId),
+                              ),
+                            );
                           },
                           child: Container(
                             decoration: BoxDecoration(
