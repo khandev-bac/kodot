@@ -299,26 +299,36 @@ class Postservice {
   Future<Map<String, dynamic>?> Boost(String? postId) async {
     try {
       final idToken = await getUserIdToken();
-      final url = Uri.parse("${Appurls.backendURLBoost}/${postId}");
-      final response = await http.get(
+      final url = Uri.parse("${Appurls.backendURLBoost}/$postId");
+
+      final response = await http.post(
         url,
         headers: {
           "Content-Type": "application/json",
           "Authorization": "Bearer $idToken",
         },
       );
+
+      // If empty body → avoid JSON decode
+      if (response.body.isEmpty) {
+        print("Boost API returned empty body");
+        return null;
+      }
+
       final resbody = jsonDecode(response.body);
+
       if (response.statusCode == 200) {
-        return {"count": resbody["count"] as Int64};
+        return {
+          "count": resbody["count"], // <- no need Int64
+        };
       }
       return null;
     } catch (e) {
-      if (kDebugMode) {
-        print("Boost ERROR: $e");
-      }
+      print("Boost ERROR: $e");
       return null;
     }
   }
+
   // TODO: share // optional
 
   Future<AppSuccessMessage<List<FeedPostModel>>?> SearchQuery(
@@ -384,16 +394,20 @@ class Postservice {
   }
 
   // create inbox
-  Future<Recivedmessage?> CreateInboxMessage(String? postId) async {
+  Future<Recivedmessage?> CreateInboxMessage(
+    String? postId,
+    String? message,
+  ) async {
     try {
       final idToken = await getUserIdToken();
       final url = Uri.parse("${Appurls.backendURLInbox}/${postId}");
-      final response = await http.get(
+      final response = await http.post(
         url,
         headers: {
           "Content-Type": "application/json",
           "Authorization": "Bearer $idToken",
         },
+        body: jsonEncode({"message": message}),
       );
       final resbody = jsonDecode(response.body);
       if (response.statusCode == 200) {
@@ -410,7 +424,7 @@ class Postservice {
 
   //inbox get_all_inbox
   // ignore: non_constant_identifier_names
-  Future<AppSuccessMessage<List<Inboxmessagemodel?>>?> GetAllUserInbox() async {
+  Future<AppSuccessMessage<List<InboxMessageModel?>>?> GetAllUserInbox() async {
     try {
       final idToken = await getUserIdToken();
       final url = Uri.parse("${Appurls.backendURLInbox}/");
@@ -426,15 +440,13 @@ class Postservice {
         return AppSuccessMessage.fromJson(
           resbody,
           (data) => (data as List)
-              .map((json) => Inboxmessagemodel.fromJson(json))
+              .map((json) => InboxMessageModel.fromJson(json))
               .toList(),
         );
       }
       return null;
     } catch (e) {
-      if (kDebugMode) {
-        print("GetAllUserInbox ERROR: $e");
-      }
+      if (kDebugMode) print("GetAllUserInbox ERROR: $e");
       return null;
     }
   }

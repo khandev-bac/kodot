@@ -1,4 +1,4 @@
-class Inboxmessagemodel {
+class InboxMessageModel {
   String? messageId;
   String? message;
   String? createdAt;
@@ -7,7 +7,8 @@ class Inboxmessagemodel {
   String? senderId;
   String? senderUsername;
   String? senderProfile;
-  Inboxmessagemodel({
+
+  InboxMessageModel({
     this.messageId,
     this.message,
     this.createdAt,
@@ -17,8 +18,9 @@ class Inboxmessagemodel {
     this.senderUsername,
     this.senderProfile,
   });
-  factory Inboxmessagemodel.fromJson(Map<String, dynamic> json) {
-    return Inboxmessagemodel(
+
+  factory InboxMessageModel.fromJson(Map<String, dynamic> json) {
+    return InboxMessageModel(
       messageId: json["message_id"],
       message: json["message"],
       createdAt: json["created_at"],

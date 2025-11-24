@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kodot/contants/Colors.dart';
-import 'package:kodot/models/AppSuccessModel.dart' show AppSuccessMessage;
+import 'package:kodot/models/AppSuccessModel.dart';
 import 'package:kodot/models/FeedModel.dart';
 import 'package:kodot/service/PostService.dart';
 import 'package:kodot/widget/CustomFeed.dart';
@@ -15,15 +15,23 @@ class Mainscreen extends StatefulWidget {
 class _MainscreenState extends State<Mainscreen> {
   late Future<AppSuccessMessage<List<FeedPostModel?>>?> futurePosts;
   final Postservice postservice = Postservice();
+
   @override
   void initState() {
     super.initState();
     futurePosts = postservice.GetAllPosts();
   }
 
+  Future<void> refreshPosts() async {
+    setState(() {
+      futurePosts = postservice.GetAllPosts();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.customBlack,
       appBar: AppBar(
         backgroundColor: AppColors.customBlack,
         title: Text(
@@ -38,14 +46,12 @@ class _MainscreenState extends State<Mainscreen> {
       body: FutureBuilder<AppSuccessMessage<List<FeedPostModel?>>?>(
         future: futurePosts,
         builder: (context, snapshot) {
-          // Loading animation
           if (!snapshot.hasData) {
             return Center(
               child: CircularProgressIndicator(color: AppColors.customWhite),
             );
           }
 
-          // Error
           if (snapshot.data == null || snapshot.data!.data == null) {
             return const Center(
               child: Text(
@@ -57,31 +63,58 @@ class _MainscreenState extends State<Mainscreen> {
 
           final posts = snapshot.data!.data!;
 
-          return ListView.builder(
-            physics: const BouncingScrollPhysics(), // Instagram style
-            padding: const EdgeInsets.only(top: 12, bottom: 24),
-            itemCount: posts.length,
-            itemBuilder: (context, index) {
-              final post = posts[index]!;
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                child: MatrixRainPostWidget(
-                  author: post.username,
-                  avatarUrl: post.profile,
-                  caption: post.caption ?? "",
-                  code: post.code ?? "",
-                  tags: post.tags,
-                  imageUrl: post.imageUrl ?? "",
-                  githubUrl: post.socials.github,
-                  instagramUrl: post.socials.instagram,
-                  xUrl: "",
-                  linkedinUrl: post.socials.linkedIn,
-                  emailUrl: "",
-                  boosts: post.boost ?? 0,
-                  shares: 10,
-                ),
-              );
-            },
+          return RefreshIndicator(
+            onRefresh: refreshPosts,
+            color: Colors.white,
+            child: ListView.builder(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.only(top: 12, bottom: 24),
+              itemCount: posts.length,
+              itemBuilder: (context, index) {
+                final post = posts[index]!;
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: MatrixRainPostWidget(
+                    author: post.username,
+                    avatarUrl: post.profile,
+                    caption: post.caption ?? "",
+                    code: post.code ?? "",
+                    tags: post.tags,
+                    imageUrl: post.imageUrl ?? "",
+                    githubUrl: post.socials.github,
+                    instagramUrl: post.socials.instagram,
+                    xUrl: "",
+                    linkedinUrl: post.socials.linkedIn,
+                    emailUrl: "",
+
+                    // --------------------------------------------------
+                    // SEND MESSAGE (INBOX)
+                    // --------------------------------------------------
+                    onSendMessage: (String message) async {
+                      if (message.trim().isEmpty) return;
+
+                      final res = await postservice.CreateInboxMessage(
+                        post.postId,
+                        message,
+                      );
+
+                      if (res != null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Message sent! 📩"),
+                            backgroundColor: Colors.blue,
+                          ),
+                        );
+                      }
+                    },
+
+                    onInbox: () {},
+                    onShare: () {},
+                  ),
+                );
+              },
+            ),
           );
         },
       ),

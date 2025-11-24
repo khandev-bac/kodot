@@ -22,7 +22,7 @@ class _HomescreenState extends State<Homescreen> {
     Mainscreen(),
     Searchscreen(),
     Postscreen(),
-    Inboxscreen(),
+    InboxScreen(),
     ProfilSreen(),
   ];
 

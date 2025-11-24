@@ -4,7 +4,7 @@ class FeedPostModel {
   final String? imageUrl;
   final String? caption;
   final List<String> tags;
-  final int boost;
+  int boost;
   final String userId;
   final String username;
   final String? profile;
