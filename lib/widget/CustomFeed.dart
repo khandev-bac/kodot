@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:kodot/contants/Colors.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MatrixRainPostWidget extends StatefulWidget {
@@ -26,8 +25,8 @@ class MatrixRainPostWidget extends StatefulWidget {
   final VoidCallback? onInbox;
   final VoidCallback? onShare;
 
-  /// NEW: send message callback
   final Function(String message)? onSendMessage;
+  final bool isBoostDisabled;
 
   const MatrixRainPostWidget({
     super.key,
@@ -50,155 +49,185 @@ class MatrixRainPostWidget extends StatefulWidget {
     this.onInbox,
     this.onShare,
     this.onSendMessage,
+    this.isBoostDisabled = false,
   });
 
   @override
   State<MatrixRainPostWidget> createState() => _MatrixRainPostWidgetState();
 }
 
-class _MatrixRainPostWidgetState extends State<MatrixRainPostWidget> {
+class _MatrixRainPostWidgetState extends State<MatrixRainPostWidget>
+    with SingleTickerProviderStateMixin {
   late int _boosts;
-  bool _showInbox = false;
+  bool _showReply = false;
+  bool _isLiked = false;
+  late AnimationController _likeController;
 
-  final TextEditingController _inboxInput = TextEditingController();
+  final TextEditingController _replyInput = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _boosts = widget.boosts;
+    _likeController = AnimationController(
+      duration: Duration(milliseconds: 600),
+      vsync: this,
+    );
+  }
+
+  @override
+  void dispose() {
+    _likeController.dispose();
+    _replyInput.dispose();
+    super.dispose();
   }
 
   Future<void> _launchUrl(String url) async {
     final uri = Uri.parse(url);
-    if (!await launchUrl(uri)) {
-      throw Exception('Could not launch $url');
-    }
+    if (!await launchUrl(uri)) throw Exception('Could not launch $url');
+  }
+
+  void _toggleLike() {
+    setState(() {
+      _isLiked = !_isLiked;
+      if (_isLiked) {
+        _likeController.forward();
+        _boosts++;
+      } else {
+        _boosts--;
+      }
+    });
+    widget.onBoost?.call();
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            MatrixRainColors.bgCard,
-            MatrixRainColors.bgGreenTint,
-            MatrixRainColors.bgCard,
-          ],
-        ),
-        border: Border.all(color: MatrixRainColors.borderGreen, width: 1.5),
-        borderRadius: BorderRadius.circular(12),
+        color: Color(0xFF0A0A0A),
+        border: Border(bottom: BorderSide(color: Color(0xFF1A1A1A), width: 1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSocialBar(),
-          _buildProfileRow(),
+          _buildHeader(),
           if (widget.caption != null) _buildCaption(),
           _buildContentSection(),
           if (widget.tags != null && widget.tags!.isNotEmpty) _buildTags(),
-
-          /// REMOVED boost count section
-          _buildActionButtons(),
-          if (_showInbox) _buildInboxBox(),
+          _buildEngagementBar(),
+          if (_showReply) _buildReplyBox(),
         ],
       ),
     );
   }
 
-  // SOCIAL BUTTON BAR
-  Widget _buildSocialBar() {
+  Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      child: Row(
-        children: [
-          if (widget.githubUrl != null)
-            _buildSocialButton(
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedGithub,
-                color: MatrixRainColors.green400,
-                size: 30,
-              ),
-              () => _launchUrl(widget.githubUrl!),
-            ),
-          if (widget.instagramUrl != null)
-            _buildSocialButton(
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedInstagram,
-                color: MatrixRainColors.lime400,
-                size: 30,
-              ),
-              () => _launchUrl(widget.instagramUrl!),
-            ),
-          if (widget.linkedinUrl != null)
-            _buildSocialButton(
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedLinkedin01,
-                color: MatrixRainColors.emerald400,
-                size: 30,
-              ),
-              () => _launchUrl(widget.linkedinUrl!),
-            ),
-          if (widget.xUrl != null)
-            _buildSocialButton(
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedNewTwitter,
-                color: MatrixRainColors.teal400,
-                size: 30,
-              ),
-              () => _launchUrl(widget.xUrl!),
-            ),
-          if (widget.emailUrl != null)
-            _buildSocialButton(
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedMail01,
-                color: MatrixRainColors.green300,
-                size: 30,
-              ),
-              () => _launchUrl("mailto:${widget.emailUrl!}"),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSocialButton(Widget icon, VoidCallback onTap) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 12),
-      child: GestureDetector(onTap: onTap, child: icon),
-    );
-  }
-
-  Widget _buildProfileRow() {
-    if (widget.author == null && widget.avatarUrl == null) return SizedBox();
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
           if (widget.avatarUrl != null)
             CircleAvatar(
               radius: 20,
-              backgroundColor: Colors.black26,
+              backgroundColor: Color(0xFF1A1A1A),
               backgroundImage: NetworkImage(widget.avatarUrl!),
             ),
-          if (widget.avatarUrl != null) SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (widget.author != null)
+          if (widget.avatarUrl != null) const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Text(
-                  widget.author!,
-                  style: const TextStyle(
-                    color: MatrixRainColors.green400,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    fontFamily: 'monospace',
+                  widget.author ?? "Developer",
+                  style: TextStyle(
+                    color: Color(0xFFFFFFFF),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
                   ),
                 ),
-            ],
+                if (widget.time != null)
+                  Text(
+                    widget.time!,
+                    style: TextStyle(
+                      color: Color(0xFF808080),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          _buildHeaderMenu(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeaderMenu() {
+    return PopupMenuButton(
+      icon: Icon(Icons.more_horiz, color: Color(0xFF808080), size: 18),
+      color: Color(0xFF1A1A1A),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      itemBuilder: (context) => [
+        if (widget.githubUrl != null)
+          PopupMenuItem(
+            child: _buildMenuItem(
+              'GitHub',
+              HugeIcons.strokeRoundedGithub,
+              () => _launchUrl(widget.githubUrl!),
+            ),
+          ),
+        if (widget.xUrl != null)
+          PopupMenuItem(
+            child: _buildMenuItem(
+              'Twitter/X',
+              HugeIcons.strokeRoundedTwitter,
+              () => _launchUrl(widget.xUrl!),
+            ),
+          ),
+        if (widget.linkedinUrl != null)
+          PopupMenuItem(
+            child: _buildMenuItem(
+              'LinkedIn',
+              HugeIcons.strokeRoundedLinkedin01,
+              () => _launchUrl(widget.linkedinUrl!),
+            ),
+          ),
+        if (widget.instagramUrl != null)
+          PopupMenuItem(
+            child: _buildMenuItem(
+              'Instagram',
+              HugeIcons.strokeRoundedInstagram,
+              () => _launchUrl(widget.instagramUrl!),
+            ),
+          ),
+        if (widget.emailUrl != null)
+          PopupMenuItem(
+            child: _buildMenuItem(
+              'Email',
+              HugeIcons.strokeRoundedMail01,
+              () => _launchUrl("mailto:${widget.emailUrl!}"),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildMenuItem(String label, dynamic icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          HugeIcon(icon: icon, color: Color(0xFFFFFFFF), size: 16),
+          const SizedBox(width: 12),
+          Text(
+            label,
+            style: TextStyle(
+              color: Color(0xFFFFFFFF),
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
@@ -207,13 +236,14 @@ class _MatrixRainPostWidgetState extends State<MatrixRainPostWidget> {
 
   Widget _buildCaption() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Text(
         widget.caption!,
-        style: const TextStyle(
-          color: Colors.white70,
-          fontSize: 13,
-          fontFamily: 'monospace',
+        style: TextStyle(
+          color: Color(0xFFE8E8E8),
+          fontSize: 15,
+          height: 1.5,
+          fontWeight: FontWeight.w400,
         ),
       ),
     );
@@ -230,7 +260,7 @@ class _MatrixRainPostWidgetState extends State<MatrixRainPostWidget> {
       child: Column(
         children: [
           if (hasCode) _buildCodeBlock(),
-          if (hasCode && hasImage) SizedBox(height: 12),
+          if (hasCode && hasImage) const SizedBox(height: 12),
           if (hasImage) _buildImageBlock(),
         ],
       ),
@@ -240,19 +270,48 @@ class _MatrixRainPostWidgetState extends State<MatrixRainPostWidget> {
   Widget _buildCodeBlock() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.black38,
-        border: Border.all(color: MatrixRainColors.borderGreen, width: 1),
+        color: Color(0xFF161616),
         borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Color(0xFF2A2A2A), width: 1),
       ),
-      child: Text(
-        widget.code ?? "",
-        style: const TextStyle(
-          color: MatrixRainColors.lime400,
-          fontSize: 12,
-          fontFamily: 'monospace',
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(color: Color(0xFF2A2A2A), width: 1),
+              ),
+            ),
+            child: Text(
+              '// Code',
+              style: TextStyle(
+                color: Color(0xFF808080),
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                fontFamily: 'monospace',
+              ),
+            ),
+          ),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Text(
+                widget.code ?? '',
+                style: TextStyle(
+                  color: Color(0xFFBBBBBB),
+                  fontSize: 11,
+                  fontFamily: 'monospace',
+                  height: 1.8,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -262,33 +321,50 @@ class _MatrixRainPostWidgetState extends State<MatrixRainPostWidget> {
       borderRadius: BorderRadius.circular(8),
       child: Image.network(
         widget.imageUrl!,
-        height: 250,
+        height: 300,
         width: double.infinity,
         fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            height: 300,
+            color: Color(0xFF1A1A1A),
+            child: Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF808080)),
+                strokeWidth: 2,
+              ),
+            ),
+          );
+        },
       ),
     );
   }
 
   Widget _buildTags() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
       child: Wrap(
         spacing: 8,
+        runSpacing: 8,
         children: widget.tags!
             .map(
               (tag) => Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
-                  color: MatrixRainColors.bgGreenTint,
-                  border: Border.all(color: MatrixRainColors.borderGreen),
-                  borderRadius: BorderRadius.circular(4),
+                  color: Color(0xFF1A1A1A),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Color(0xFF2A2A2A), width: 1),
                 ),
                 child: Text(
-                  tag,
-                  style: const TextStyle(
-                    color: MatrixRainColors.green300,
+                  '#$tag',
+                  style: TextStyle(
+                    color: Color(0xFFB0B0B0),
                     fontSize: 11,
-                    fontFamily: 'monospace',
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -298,127 +374,141 @@ class _MatrixRainPostWidgetState extends State<MatrixRainPostWidget> {
     );
   }
 
-  Widget _buildActionButtons() {
+  Widget _buildEngagementBar() {
     return Padding(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          // BOOST BUTTON
-          Expanded(
-            child: _buildAction("Boost", Icons.flash_on, () {
-              setState(() {
-                _boosts = _boosts == 0 ? 1 : 0; // toggle like Instagram
-              });
-              widget.onBoost?.call();
-            }),
+          _buildEngagementButton(
+            icon: HugeIcons.strokeRoundedFlash,
+            count: _boosts,
+            isActive: _isLiked,
+            onTap: widget.isBoostDisabled ? null : _toggleLike,
+            label: 'Boost',
+            isDisabled: widget.isBoostDisabled,
           ),
-
-          SizedBox(width: 8),
-
-          Expanded(
-            child: _buildAction("Inbox", Icons.mail_outline, () {
-              setState(() => _showInbox = !_showInbox);
+          const Spacer(),
+          _buildEngagementButton(
+            icon: HugeIcons.strokeRoundedMail01,
+            count: widget.messages,
+            onTap: () {
+              setState(() => _showReply = !_showReply);
               widget.onInbox?.call();
-            }),
+            },
+            label: 'Reply',
           ),
-
-          SizedBox(width: 8),
-
-          Expanded(
-            child: _buildAction("Share", Icons.share, () {
-              widget.onShare?.call();
-            }),
+          const Spacer(),
+          _buildEngagementButton(
+            icon: HugeIcons.strokeRoundedArrowUpRight01,
+            count: widget.shares,
+            onTap: widget.onShare,
+            label: 'Share',
           ),
         ],
       ),
     );
   }
 
-  Widget _buildAction(String label, IconData icon, VoidCallback onTap) {
-    return OutlinedButton(
-      onPressed: onTap,
-      style: OutlinedButton.styleFrom(
-        side: BorderSide(color: MatrixRainColors.green400),
-        padding: const EdgeInsets.symmetric(vertical: 8),
-      ),
+  Widget _buildEngagementButton({
+    required dynamic icon,
+    required int count,
+    VoidCallback? onTap,
+    required String label,
+    bool isActive = false,
+    bool isDisabled = false,
+  }) {
+    return GestureDetector(
+      onTap: isDisabled ? null : onTap,
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: MatrixRainColors.green400, size: 14),
-          SizedBox(width: 4),
-          Text(
-            label,
-            style: const TextStyle(
-              color: MatrixRainColors.green400,
-              fontSize: 12,
-              fontFamily: 'monospace',
+          HugeIcon(
+            icon: icon,
+            color: isDisabled
+                ? Color(0xFF404040)
+                : (isActive ? Color(0xFFFFFFFF) : Color(0xFF606060)),
+            size: 16,
+          ),
+          if (count > 0) ...[
+            const SizedBox(width: 6),
+            Text(
+              count.toString(),
+              style: TextStyle(
+                color: isDisabled
+                    ? Color(0xFF404040)
+                    : (isActive ? Color(0xFFFFFFFF) : Color(0xFF606060)),
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReplyBox() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Color(0xFF161616),
+        border: Border(top: BorderSide(color: Color(0xFF1A1A1A), width: 1)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          if (widget.avatarUrl != null)
+            CircleAvatar(
+              radius: 16,
+              backgroundColor: Color(0xFF1A1A1A),
+              backgroundImage: NetworkImage(widget.avatarUrl!),
+            ),
+          if (widget.avatarUrl != null) const SizedBox(width: 12),
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Color(0xFF0A0A0A),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: Color(0xFF2A2A2A), width: 1),
+              ),
+              child: TextField(
+                controller: _replyInput,
+                maxLines: null,
+                style: TextStyle(color: Color(0xFFE8E8E8), fontSize: 13),
+                decoration: InputDecoration(
+                  hintText: 'Add your reply...',
+                  hintStyle: TextStyle(color: Color(0xFF606060), fontSize: 13),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: () {
+              final msg = _replyInput.text.trim();
+              if (msg.isEmpty) return;
+              widget.onSendMessage?.call(msg);
+              _replyInput.clear();
+              setState(() => _showReply = false);
+            },
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Color(0xFF2A2A2A),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: HugeIcon(
+                icon: HugeIcons.strokeRoundedMenu01,
+                color: Color(0xFFFFFFFF),
+                size: 16,
+              ),
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildInboxBox() {
-    return Padding(
-      padding: const EdgeInsets.all(12),
-      child: Container(
-        decoration: BoxDecoration(
-          color: const Color(0xFF0a2e1a),
-          border: Border.all(color: MatrixRainColors.borderGreen),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _inboxInput,
-                  style: const TextStyle(
-                    color: MatrixRainColors.green400,
-                    fontFamily: 'monospace',
-                  ),
-                  decoration: InputDecoration(
-                    hintText: "Reply...",
-                    hintStyle: const TextStyle(
-                      color: MatrixRainColors.textGray500,
-                      fontFamily: 'monospace',
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(4),
-                      borderSide: const BorderSide(
-                        color: MatrixRainColors.borderGreen,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-
-              ElevatedButton(
-                onPressed: () {
-                  final msg = _inboxInput.text.trim();
-                  if (msg.isEmpty) return;
-
-                  widget.onSendMessage?.call(msg);
-                  _inboxInput.clear();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: MatrixRainColors.green600,
-                ),
-                child: const Text(
-                  "Send",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontFamily: "monospace",
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

@@ -1,6 +1,6 @@
 class Appimages {
   Appimages._();
-  static String wordlogobg = "assets/images/wordlogobg.png";
+  static String wordlogobg = "assets/images/wordlogobgv2.png";
   static String wordlogo = "assets/images/wordlogo.png";
   static String o = "assets/images/o.png";
   static String logo_bg = "assets/images/logo_bg.png";
