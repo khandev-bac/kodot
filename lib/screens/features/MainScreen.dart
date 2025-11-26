@@ -3,6 +3,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:kodot/contants/Colors.dart';
 import 'package:kodot/models/AppSuccessModel.dart';
 import 'package:kodot/models/FeedModel.dart';
+import 'package:kodot/screens/features/SharePostBottomSheet.dart';
 import 'package:kodot/service/PostService.dart';
 import 'package:kodot/widget/CustomFeed.dart';
 
@@ -132,14 +133,6 @@ class _MainscreenState extends State<Mainscreen> {
                     letterSpacing: 0.5,
                   ),
                 ),
-                Text(
-                  "Developer Feed",
-                  style: TextStyle(
-                    color: Color(0xFF606060),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
               ],
             ),
           ],
@@ -250,7 +243,7 @@ class _MainscreenState extends State<Mainscreen> {
                   instagramUrl: post.socials.instagram,
                   linkedinUrl: post.socials.linkedIn,
                   boosts: currentBoosts,
-                  
+
                   // Disable boost if already boosted
                   isBoostDisabled: isAlreadyBoosted,
 
@@ -260,17 +253,105 @@ class _MainscreenState extends State<Mainscreen> {
                   onSendMessage: (String message) async {
                     if (message.trim().isEmpty) return;
 
+                    // Show loading dialog
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) => Center(
+                        child: Container(
+                          padding: EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: Color(0xFF161616),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: Color(0xFF2A2A2A),
+                              width: 1,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Color(0xFF000000).withOpacity(0.3),
+                                blurRadius: 16,
+                                spreadRadius: 0,
+                                offset: Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Color(0xFF606060),
+                                ),
+                                strokeWidth: 2.5,
+                              ),
+                              SizedBox(height: 16),
+                              Text(
+                                "Sending message...",
+                                style: TextStyle(
+                                  color: Color(0xFFE8E8E8),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              SizedBox(height: 6),
+                              Text(
+                                "Please wait",
+                                style: TextStyle(
+                                  color: Color(0xFF606060),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+
                     final res = await postservice.CreateInboxMessage(
                       post.postId,
                       message,
                     );
 
+                    if (context.mounted) {
+                      Navigator.pop(context); // Close loading dialog
+                    }
+
                     if (res != null) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Message sent! 📩"),
+                        SnackBar(
+                          content: Row(
+                            children: [
+                              HugeIcon(
+                                icon: HugeIcons.strokeRoundedCheckmarkBadge01,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                              SizedBox(width: 8),
+                              Text("Message sent! 📩"),
+                            ],
+                          ),
                           backgroundColor: Colors.green,
-                          duration: Duration(milliseconds: 800),
+                          duration: Duration(milliseconds: 1200),
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Row(
+                            children: [
+                              HugeIcon(
+                                icon: HugeIcons.strokeRoundedAlertCircle,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                              SizedBox(width: 8),
+                              Text("Failed to send message"),
+                            ],
+                          ),
+                          backgroundColor: Colors.red,
+                          duration: Duration(milliseconds: 1200),
                         ),
                       );
                     }
@@ -286,7 +367,17 @@ class _MainscreenState extends State<Mainscreen> {
                         },
 
                   onInbox: () {},
-                  onShare: () {},
+                  onShare: () {
+                    showShareBottomSheet(
+                      context,
+                      postId: post.postId,
+                      caption: post.caption,
+                      authorName: post.username,
+                      authorAvatar: post.profile,
+                      imageUrl: post.imageUrl,
+                      code: post.code,
+                    );
+                  },
                 );
               },
             ),

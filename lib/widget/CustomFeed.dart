@@ -389,7 +389,7 @@ class _MatrixRainPostWidgetState extends State<MatrixRainPostWidget>
           ),
           const Spacer(),
           _buildEngagementButton(
-            icon: HugeIcons.strokeRoundedMail01,
+            icon: HugeIcons.strokeRoundedInbox,
             count: widget.messages,
             onTap: () {
               setState(() => _showReply = !_showReply);
@@ -502,7 +502,7 @@ class _MatrixRainPostWidgetState extends State<MatrixRainPostWidget>
                 borderRadius: BorderRadius.circular(4),
               ),
               child: HugeIcon(
-                icon: HugeIcons.strokeRoundedMenu01,
+                icon: HugeIcons.strokeRoundedSent,
                 color: Color(0xFFFFFFFF),
                 size: 16,
               ),
