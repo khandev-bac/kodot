@@ -1,13 +1,13 @@
 import 'dart:convert';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:kodot/contants/AppUrls.dart';
 import 'package:http/http.dart' as http;
 
-// idToken
 class Authservice {
-  final FirebaseAuth _auth = FirebaseAuth.instance; // Firebase Auth instance
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<UserCredential?> googleLogin() async {
     try {
@@ -33,7 +33,10 @@ class Authservice {
       if (kDebugMode) {
         print("ID TOKEN -> $idToken");
       }
-      firebaseAuth(idToken!);
+      await firebaseAuth(idToken!);
+
+      // Sync FCM token after successful login
+      await syncFCMTokenAfterLogin();
     } catch (e) {
       if (kDebugMode) {
         print("Google Login Flow Error: $e");
@@ -41,7 +44,7 @@ class Authservice {
     }
   }
 
-  void firebaseAuth(String idToken) async {
+  Future<void> firebaseAuth(String idToken) async {
     try {
       final url = Uri.parse(Appurls.backendURL);
       final res = await http.post(
@@ -52,15 +55,41 @@ class Authservice {
       if (res.statusCode == 200) {
         if (kDebugMode) {
           print("Status: ${res.statusCode}");
-        }
-        if (kDebugMode) {
           print("Body: ${res.body}");
         }
       }
     } catch (e) {
       if (kDebugMode) {
-        print("Error $e");
+        print("Error: $e");
       }
+    }
+  }
+
+  // Sync FCM token with backend after login
+  Future<void> syncFCMTokenAfterLogin() async {
+    try {
+      final fcmToken = await FirebaseMessaging.instance.getToken();
+      final idToken = await _auth.currentUser?.getIdToken();
+
+      if (fcmToken == null || idToken == null) return;
+
+      final url = Uri.parse('${Appurls.backendProURL}/sync-fcm-token');
+      final response = await http.post(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $idToken",
+        },
+        body: jsonEncode({"fcm_token": fcmToken}),
+      );
+
+      if (response.statusCode == 200) {
+        if (kDebugMode) print("FCM token synced successfully");
+      } else {
+        if (kDebugMode) print("Failed to sync FCM token: ${response.body}");
+      }
+    } catch (e) {
+      if (kDebugMode) print("Error syncing FCM token: $e");
     }
   }
 
@@ -82,7 +111,11 @@ class Authservice {
       final credential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
       final idToken = await credential.user?.getIdToken();
-      firebaseAuth(idToken!);
+      await firebaseAuth(idToken!);
+
+      // Sync FCM token after successful signup
+      await syncFCMTokenAfterLogin();
+
       return credential;
     } catch (e) {
       if (kDebugMode) {
@@ -94,18 +127,20 @@ class Authservice {
 
   Future<UserCredential?> loginUser(String email, String password) async {
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-      // final idToken = await credential.user?.getIdToken();
-      // firebaseAuth(idToken!);
+
+      // Sync FCM token after successful login
+      await syncFCMTokenAfterLogin();
+
+      return credential;
     } catch (e) {
       if (kDebugMode) {
-        print("Sign up error: $e");
+        print("Login error: $e");
       }
       rethrow;
     }
-    return null;
   }
 }

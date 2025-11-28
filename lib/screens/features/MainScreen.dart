@@ -37,12 +37,20 @@ class _MainscreenState extends State<Mainscreen> {
   Future<void> _handleBoostToggle(String postId) async {
     try {
       final result = await postservice.Boost(postId);
-
       if (result != null && result['count'] != null) {
         setState(() {
           localBoosts[postId] = result['count'];
           userLiked[postId] = !(userLiked[postId] ?? false);
         });
+
+        // Find the post and use its FCM token
+        // Or use the one from response
+        if (result['author_fcm_token'] != null) {
+          await postservice.sendFCMNotification(
+            result['author_fcm_token'],
+            "boost",
+          );
+        }
       }
     } catch (e) {
       print("Boost Error: $e");
@@ -56,6 +64,7 @@ class _MainscreenState extends State<Mainscreen> {
       appBar: AppBar(
         backgroundColor: Color(0xFF0A0A0A),
         elevation: 0,
+        automaticallyImplyLeading: false,
         title: Row(
           children: [
             Container(
@@ -160,6 +169,15 @@ class _MainscreenState extends State<Mainscreen> {
                   onSendMessage: (msg) async {
                     if (msg.trim().isEmpty) return;
                     await postservice.CreateInboxMessage(post.postId, msg);
+
+                    // Use FCM token directly from post model
+                    if (post.authorFCMToken != null &&
+                        post.authorFCMToken!.isNotEmpty) {
+                      await postservice.sendFCMNotification(
+                        post.authorFCMToken!,
+                        "inbox",
+                      );
+                    }
                   },
                   onDelete: () async {
                     final result = await postservice.DeletePost(

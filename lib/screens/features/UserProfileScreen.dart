@@ -180,10 +180,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           ),
                           child: ClipOval(
                             child:
-                                userData?.Profile != null &&
-                                    userData!.Profile!.isNotEmpty
+                                userData?.profile != null &&
+                                    userData!.profile!.isNotEmpty
                                 ? Image.network(
-                                    userData!.Profile!,
+                                    userData!.profile!,
                                     fit: BoxFit.cover,
                                     errorBuilder: (context, error, stackTrace) {
                                       return Container(
@@ -214,7 +214,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
                         // Username
                         Text(
-                          userData?.UserName ?? "Unknown",
+                          userData?.userName ?? "Unknown",
                           style: TextStyle(
                             color: Color(0xFFE8E8E8),
                             fontSize: 22,
@@ -241,14 +241,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   _buildInfoCard(
                     icon: HugeIcons.strokeRoundedMail01,
                     label: "Email",
-                    value: userData?.Email ?? "Not provided",
+                    value: userData?.email ?? "Not provided",
                   ),
                   SizedBox(height: 12),
 
                   _buildInfoCard(
                     icon: HugeIcons.strokeRoundedCalendar01,
                     label: "Joined",
-                    value: formatDate(userData?.CreatedAt),
+                    value: formatDate(userData?.createdAt),
                   ),
                   SizedBox(height: 12),
 

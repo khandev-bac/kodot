@@ -12,4 +12,6 @@ class Appurls {
   static String backendURLSearch = "http://192.168.0.7:3000/api/v1/search";
   static String backendURLInbox = "http://192.168.0.7:3000/api/v1/inbox";
   static String backendURLBoost = "http://192.168.0.7:3000/api/v1/boost";
+  static String backendURLNotification =
+      "http://192.168.0.7:3000/api/v1/notification";
 }

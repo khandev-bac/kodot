@@ -72,7 +72,11 @@ class _ProfilSreenState extends State<ProfilSreen> {
       ),
 
       body: isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.white))
+          ? const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF606060)),
+              ),
+            )
           : user == null ||
                 user!.data ==
                     null // ✅ FIXED
@@ -97,10 +101,10 @@ class _ProfilSreenState extends State<ProfilSreen> {
           CircleAvatar(
             radius: 55,
             backgroundColor: Colors.grey.shade800,
-            backgroundImage: (data.Profile != null && data.Profile!.isNotEmpty)
-                ? NetworkImage(data.Profile!)
+            backgroundImage: (data.profile != null && data.profile!.isNotEmpty)
+                ? NetworkImage(data.profile!)
                 : null,
-            child: (data.Profile == null || data.Profile!.isEmpty)
+            child: (data.profile == null || data.profile!.isEmpty)
                 ? const Icon(Icons.person, color: Colors.white, size: 50)
                 : null,
           ),
@@ -109,7 +113,7 @@ class _ProfilSreenState extends State<ProfilSreen> {
 
           // ---------------- USERNAME ----------------
           Text(
-            data.UserName ?? "Unknown User",
+            data.userName ?? "Unknown User",
             style: TextStyle(
               color: AppColors.customWhite,
               fontSize: 22,
@@ -121,9 +125,9 @@ class _ProfilSreenState extends State<ProfilSreen> {
           const SizedBox(height: 6),
 
           // ---------------- JOIN DATE ----------------
-          if (data.CreatedAt != null)
+          if (data.createdAt != null)
             Text(
-              formatJoinDate(data.CreatedAt),
+              formatJoinDate(data.createdAt),
               style: TextStyle(
                 // ignore: deprecated_member_use
                 color: AppColors.customWhite.withOpacity(0.6),
@@ -151,7 +155,7 @@ class _ProfilSreenState extends State<ProfilSreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    data.Email ?? "No email",
+                    data.email ?? "No email",
                     style: TextStyle(
                       color: AppColors.customWhite,
                       fontSize: 16,

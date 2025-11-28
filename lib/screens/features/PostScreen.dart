@@ -292,7 +292,9 @@ class _PostscreenState extends State<Postscreen> {
           // Handle loading state
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
-              child: CircularProgressIndicator(color: AppColors.customWhite),
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF606060)),
+              ),
             );
           }
 

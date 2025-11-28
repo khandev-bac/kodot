@@ -8,6 +8,7 @@ class FeedPostModel {
   final String userId;
   final String username;
   final String? profile;
+  final String? authorFCMToken;
 
   final Socials socials;
 
@@ -21,6 +22,7 @@ class FeedPostModel {
     required this.userId,
     required this.username,
     this.profile,
+    this.authorFCMToken,
     required this.socials,
   });
 
@@ -35,6 +37,7 @@ class FeedPostModel {
       userId: json["user_id"],
       username: json["username"],
       profile: json["profile"],
+      authorFCMToken: json["author_fcm_token"],
       socials: Socials.fromJson(json["socials"]),
     );
   }
