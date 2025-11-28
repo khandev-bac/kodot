@@ -24,6 +24,7 @@ class MatrixRainPostWidget extends StatefulWidget {
   final VoidCallback? onBoost;
   final VoidCallback? onInbox;
   final VoidCallback? onShare;
+  final VoidCallback? onDelete;
 
   final Function(String message)? onSendMessage;
   final bool isBoostDisabled;
@@ -50,6 +51,7 @@ class MatrixRainPostWidget extends StatefulWidget {
     this.onShare,
     this.onSendMessage,
     this.isBoostDisabled = false,
+    this.onDelete,
   });
 
   @override
@@ -69,6 +71,10 @@ class _MatrixRainPostWidgetState extends State<MatrixRainPostWidget>
   void initState() {
     super.initState();
     _boosts = widget.boosts;
+
+    // ⭐ FIX: Start unliked (toggle will increment + decrement)
+    _isLiked = false;
+
     _likeController = AnimationController(
       duration: Duration(milliseconds: 600),
       vsync: this,
@@ -87,16 +93,19 @@ class _MatrixRainPostWidgetState extends State<MatrixRainPostWidget>
     if (!await launchUrl(uri)) throw Exception('Could not launch $url');
   }
 
+  // ⭐ FIX: BOOST TOGGLE LOGIC (same UI, working toggle)
   void _toggleLike() {
     setState(() {
       _isLiked = !_isLiked;
+
       if (_isLiked) {
         _likeController.forward();
         _boosts++;
       } else {
-        _boosts--;
+        if (_boosts > 0) _boosts--;
       }
     });
+
     widget.onBoost?.call();
   }
 
@@ -111,10 +120,17 @@ class _MatrixRainPostWidgetState extends State<MatrixRainPostWidget>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildHeader(),
-          if (widget.caption != null) _buildCaption(),
+
+          // ⭐ FIX: Avoid empty caption gap
+          if (widget.caption != null && widget.caption!.trim().isNotEmpty)
+            _buildCaption(),
+
           _buildContentSection(),
+
           if (widget.tags != null && widget.tags!.isNotEmpty) _buildTags(),
+
           _buildEngagementBar(),
+
           if (_showReply) _buildReplyBox(),
         ],
       ),
@@ -164,13 +180,13 @@ class _MatrixRainPostWidgetState extends State<MatrixRainPostWidget>
   }
 
   Widget _buildHeaderMenu() {
-    return PopupMenuButton(
+    return PopupMenuButton<void>(
       icon: Icon(Icons.more_horiz, color: Color(0xFF808080), size: 18),
       color: Color(0xFF1A1A1A),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      itemBuilder: (context) => [
+      itemBuilder: (context) => <PopupMenuEntry<void>>[
         if (widget.githubUrl != null)
-          PopupMenuItem(
+          PopupMenuItem<void>(
             child: _buildMenuItem(
               'GitHub',
               HugeIcons.strokeRoundedGithub,
@@ -178,7 +194,7 @@ class _MatrixRainPostWidgetState extends State<MatrixRainPostWidget>
             ),
           ),
         if (widget.xUrl != null)
-          PopupMenuItem(
+          PopupMenuItem<void>(
             child: _buildMenuItem(
               'Twitter/X',
               HugeIcons.strokeRoundedTwitter,
@@ -186,7 +202,7 @@ class _MatrixRainPostWidgetState extends State<MatrixRainPostWidget>
             ),
           ),
         if (widget.linkedinUrl != null)
-          PopupMenuItem(
+          PopupMenuItem<void>(
             child: _buildMenuItem(
               'LinkedIn',
               HugeIcons.strokeRoundedLinkedin01,
@@ -194,7 +210,7 @@ class _MatrixRainPostWidgetState extends State<MatrixRainPostWidget>
             ),
           ),
         if (widget.instagramUrl != null)
-          PopupMenuItem(
+          PopupMenuItem<void>(
             child: _buildMenuItem(
               'Instagram',
               HugeIcons.strokeRoundedInstagram,
@@ -202,11 +218,35 @@ class _MatrixRainPostWidgetState extends State<MatrixRainPostWidget>
             ),
           ),
         if (widget.emailUrl != null)
-          PopupMenuItem(
+          PopupMenuItem<void>(
             child: _buildMenuItem(
               'Email',
               HugeIcons.strokeRoundedMail01,
               () => _launchUrl("mailto:${widget.emailUrl!}"),
+            ),
+          ),
+
+        if (widget.onDelete != null) const PopupMenuDivider(),
+        if (widget.onDelete != null)
+          PopupMenuItem<void>(
+            onTap: () => widget.onDelete?.call(),
+            child: Row(
+              children: [
+                HugeIcon(
+                  icon: HugeIcons.strokeRoundedBash,
+                  color: Colors.red,
+                  size: 16,
+                ),
+                const SizedBox(width: 12),
+                const Text(
+                  'Delete',
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ),
       ],

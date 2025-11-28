@@ -18,16 +18,13 @@ class _MainscreenState extends State<Mainscreen> {
   late Future<AppSuccessMessage<List<FeedPostModel?>>?> futurePosts;
   final Postservice postservice = Postservice();
 
-  // Track boost counts locally
-  late Map<String, int> boostCounts;
-  // Track which posts have been boosted
-  late Set<String> boostedPosts;
+  // Local boost state so UI updates instantly
+  Map<String, int> localBoosts = {};
+  Map<String, bool> userLiked = {};
 
   @override
   void initState() {
     super.initState();
-    boostCounts = {};
-    boostedPosts = {};
     futurePosts = postservice.GetAllPosts();
   }
 
@@ -37,55 +34,18 @@ class _MainscreenState extends State<Mainscreen> {
     });
   }
 
-  Future<void> _handleBoost(String postId, int currentBoosts) async {
-    // Check if already boosted
-    if (boostedPosts.contains(postId)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("You already boosted this post!"),
-          backgroundColor: Colors.orange,
-          duration: Duration(milliseconds: 800),
-        ),
-      );
-      return;
-    }
-
+  Future<void> _handleBoostToggle(String postId) async {
     try {
-      // Call the boost API
       final result = await postservice.Boost(postId);
 
       if (result != null && result['count'] != null) {
         setState(() {
-          // Update the local boost count
-          boostCounts[postId] = result['count'];
-          // Add to boosted posts set
-          boostedPosts.add(postId);
+          localBoosts[postId] = result['count'];
+          userLiked[postId] = !(userLiked[postId] ?? false);
         });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Boosted! 🚀"),
-            backgroundColor: Colors.green,
-            duration: Duration(milliseconds: 800),
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Failed to boost post"),
-            backgroundColor: Colors.red,
-            duration: Duration(milliseconds: 800),
-          ),
-        );
       }
     } catch (e) {
       print("Boost Error: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Error boosting post"),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 
@@ -121,19 +81,13 @@ class _MainscreenState extends State<Mainscreen> {
               ),
             ),
             const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Kodot",
-                  style: TextStyle(
-                    color: AppColors.customWhite,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ],
+            Text(
+              "Kodot",
+              style: TextStyle(
+                color: AppColors.customWhite,
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ],
         ),
@@ -141,7 +95,6 @@ class _MainscreenState extends State<Mainscreen> {
       body: FutureBuilder<AppSuccessMessage<List<FeedPostModel?>>?>(
         future: futurePosts,
         builder: (context, snapshot) {
-          // Loading state
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
               child: CircularProgressIndicator(
@@ -150,66 +103,15 @@ class _MainscreenState extends State<Mainscreen> {
             );
           }
 
-          // Error handling
           if (!snapshot.hasData || snapshot.data == null) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedAlertCircle,
-                    color: Color(0xFF404040),
-                    size: 64,
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    "Failed to load posts",
-                    style: TextStyle(
-                      color: AppColors.customWhite,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    "Please try again later",
-                    style: TextStyle(color: Color(0xFF606060), fontSize: 13),
-                  ),
-                ],
-              ),
-            );
+            return _buildError("Failed to load posts");
           }
 
-          if (snapshot.data!.data == null || snapshot.data!.data!.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedFileNotFound,
-                    color: Color(0xFF404040),
-                    size: 64,
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    "No posts yet",
-                    style: TextStyle(
-                      color: AppColors.customWhite,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    "Be the first to share your code!",
-                    style: TextStyle(color: Color(0xFF606060), fontSize: 13),
-                  ),
-                ],
-              ),
-            );
+          final posts = snapshot.data!.data;
+          if (posts == null || posts.isEmpty) {
+            return _buildError("No posts yet");
           }
 
-          final posts = snapshot.data!.data!;
           final validPosts = posts
               .where((p) => p != null)
               .cast<FeedPostModel>()
@@ -217,154 +119,30 @@ class _MainscreenState extends State<Mainscreen> {
 
           return RefreshIndicator(
             onRefresh: refreshPosts,
-            color: AppColors.customWhite,
-            backgroundColor: Color(0xFF1A1A1A),
-            child: ListView.separated(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.only(top: 8, bottom: 24),
+            child: ListView.builder(
+              padding: EdgeInsets.only(bottom: 20),
               itemCount: validPosts.length,
-              separatorBuilder: (context, index) => SizedBox(height: 1),
               itemBuilder: (context, index) {
                 final post = validPosts[index];
 
-                // Get the current boost count (from local state or original)
-                final currentBoosts = boostCounts[post.postId] ?? post.boost;
-                // Check if this post is already boosted
-                final isAlreadyBoosted = boostedPosts.contains(post.postId);
+                final localBoost = localBoosts[post.postId];
+                final currentBoost = localBoost ?? post.boost;
 
                 return MatrixRainPostWidget(
                   author: post.username,
                   avatarUrl: post.profile,
-                  caption: post.caption ?? "",
-                  code: post.code ?? "",
+                  caption: post.caption,
+                  code: post.code,
                   tags: post.tags,
-                  imageUrl: post.imageUrl ?? "",
+                  imageUrl: post.imageUrl,
                   githubUrl: post.socials.github,
                   instagramUrl: post.socials.instagram,
                   linkedinUrl: post.socials.linkedIn,
-                  boosts: currentBoosts,
+                  // xUrl: post.socials,
+                  boosts: currentBoost,
 
-                  // Disable boost if already boosted
-                  isBoostDisabled: isAlreadyBoosted,
-
-                  // --------------------------------------------------
-                  // SEND MESSAGE (INBOX)
-                  // --------------------------------------------------
-                  onSendMessage: (String message) async {
-                    if (message.trim().isEmpty) return;
-
-                    // Show loading dialog
-                    showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (context) => Center(
-                        child: Container(
-                          padding: EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: Color(0xFF161616),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                              color: Color(0xFF2A2A2A),
-                              width: 1,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Color(0xFF000000).withOpacity(0.3),
-                                blurRadius: 16,
-                                spreadRadius: 0,
-                                offset: Offset(0, 8),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Color(0xFF606060),
-                                ),
-                                strokeWidth: 2.5,
-                              ),
-                              SizedBox(height: 16),
-                              Text(
-                                "Sending message...",
-                                style: TextStyle(
-                                  color: Color(0xFFE8E8E8),
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              SizedBox(height: 6),
-                              Text(
-                                "Please wait",
-                                style: TextStyle(
-                                  color: Color(0xFF606060),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-
-                    final res = await postservice.CreateInboxMessage(
-                      post.postId,
-                      message,
-                    );
-
-                    if (context.mounted) {
-                      Navigator.pop(context); // Close loading dialog
-                    }
-
-                    if (res != null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Row(
-                            children: [
-                              HugeIcon(
-                                icon: HugeIcons.strokeRoundedCheckmarkBadge01,
-                                color: Colors.white,
-                                size: 18,
-                              ),
-                              SizedBox(width: 8),
-                              Text("Message sent! 📩"),
-                            ],
-                          ),
-                          backgroundColor: Colors.green,
-                          duration: Duration(milliseconds: 1200),
-                        ),
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Row(
-                            children: [
-                              HugeIcon(
-                                icon: HugeIcons.strokeRoundedAlertCircle,
-                                color: Colors.white,
-                                size: 18,
-                              ),
-                              SizedBox(width: 8),
-                              Text("Failed to send message"),
-                            ],
-                          ),
-                          backgroundColor: Colors.red,
-                          duration: Duration(milliseconds: 1200),
-                        ),
-                      );
-                    }
-                  },
-
-                  // --------------------------------------------------
-                  // BOOST BUTTON
-                  // --------------------------------------------------
-                  onBoost: isAlreadyBoosted
-                      ? null
-                      : () async {
-                          await _handleBoost(post.postId, currentBoosts);
-                        },
+                  isBoostDisabled: false, // ⭐ always enabled
+                  onBoost: () => _handleBoostToggle(post.postId),
 
                   onInbox: () {},
                   onShare: () {
@@ -378,11 +156,51 @@ class _MainscreenState extends State<Mainscreen> {
                       code: post.code,
                     );
                   },
+
+                  onSendMessage: (msg) async {
+                    if (msg.trim().isEmpty) return;
+                    await postservice.CreateInboxMessage(post.postId, msg);
+                  },
+                  onDelete: () async {
+                    final result = await postservice.DeletePost(
+                      postId: post.postId,
+                    );
+                    if (result != null && result['statusCode'] == 200) {
+                      setState(() {
+                        futurePosts = postservice.GetAllPosts();
+                      });
+                    }
+                  },
                 );
               },
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildError(String message) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedFileNotFound,
+            color: Color(0xFF404040),
+            size: 64,
+          ),
+          SizedBox(height: 16),
+          Text(
+            message,
+            style: TextStyle(
+              color: AppColors.customWhite,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          SizedBox(height: 8),
+        ],
       ),
     );
   }
