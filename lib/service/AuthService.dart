@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -8,6 +9,19 @@ import 'package:http/http.dart' as http;
 
 class Authservice {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  Future<String?> getUserIdToken() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        String? idToken = await user.getIdToken(true);
+        return idToken;
+      } catch (e) {
+        if (kDebugMode) print('Error getting ID token: $e');
+        return null;
+      }
+    }
+    return null;
+  }
 
   Future<UserCredential?> googleLogin() async {
     try {
@@ -141,6 +155,36 @@ class Authservice {
         print("Login error: $e");
       }
       rethrow;
+    }
+  }
+
+  Future<bool> UpdateProfileImageService(File imageFile) async {
+    try {
+      final idToken = await getUserIdToken();
+      final url = Uri.parse("${Appurls.backendProURL}/update_profile_image");
+      final request = http.MultipartRequest("POST", url);
+      request.headers["Authorization"] = "Bearer $idToken";
+      request.files.add(
+        await http.MultipartFile.fromPath("profile_image", imageFile.path),
+      );
+      final response = await request.send();
+      final res = await http.Response.fromStream(response);
+      if (res.statusCode == 200) {
+        if (kDebugMode) {
+          print("Profile updated: ${res.body}");
+        }
+        return true;
+      } else {
+        if (kDebugMode) {
+          print("Failed: ${res.body}");
+        }
+        return false;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print("Update error: $e");
+      }
+      return false;
     }
   }
 }
