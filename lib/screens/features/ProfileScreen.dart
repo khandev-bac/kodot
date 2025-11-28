@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:kodot/contants/Colors.dart';
 import 'package:kodot/models/AppSuccessModel.dart';
 import 'package:kodot/models/UserUpdateInfo.dart';
 import 'package:kodot/service/AuthService.dart';
 import 'package:kodot/service/PostService.dart';
+import 'package:kodot/utils/ImagePicker.dart';
 import 'package:kodot/widget/CustomButton.dart';
 
 class ProfilSreen extends StatefulWidget {
@@ -98,15 +100,44 @@ class _ProfilSreenState extends State<ProfilSreen> {
           const SizedBox(height: 40),
 
           // ---------------- PROFILE PICTURE ----------------
-          CircleAvatar(
-            radius: 55,
-            backgroundColor: Colors.grey.shade800,
-            backgroundImage: (data.profile != null && data.profile!.isNotEmpty)
-                ? NetworkImage(data.profile!)
-                : null,
-            child: (data.profile == null || data.profile!.isEmpty)
-                ? const Icon(Icons.person, color: Colors.white, size: 50)
-                : null,
+          Stack(
+            children: [
+              CircleAvatar(
+                radius: 55,
+                backgroundColor: Colors.grey.shade800,
+                backgroundImage:
+                    (data.profile != null && data.profile!.isNotEmpty)
+                    ? NetworkImage(data.profile!)
+                    : null,
+                child: (data.profile == null || data.profile!.isEmpty)
+                    ? const Icon(Icons.person, color: Colors.white, size: 50)
+                    : null,
+              ),
+
+              // Positioned Button (Bottom Right)
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color.fromARGB(221, 65, 30, 221),
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: () {
+                      selectProfileImage(context);
+                    },
+                    icon: HugeIcon(
+                      icon: HugeIcons.strokeRoundedAlbum01,
+                      size: 16,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
 
           const SizedBox(height: 20),
